@@ -1,5 +1,6 @@
 CreateConVar('ryoiki_ke', '0.1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('ryoiki_kd', '0.1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('ryoiki_expand_speed', '500', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('ryoiki_prethreat', '1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('ryoiki_threat', '1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateClientConVar('ryoiki_measure_sensitivity', '200', true, true)
@@ -10,6 +11,7 @@ if CLIENT then
 		name = {'base', '基础'},
 		ke = {'energy cost factor', '能量消耗系数'},
 		kd = {'health decay factor', '血量衰减系数'},
+		expand_speed = {'expand speed', '扩展速度'},
 		prethreat = {'pre start threat', '预启动威胁'},
 		threat = {'start threat', '启动威胁'},
 		measure_sensitivity = {'measurer sensitivity', '测量灵敏度'},
@@ -33,6 +35,7 @@ if CLIENT then
 			panel:Help('---------'..lang_parse('server')..'---------')
 			panel:NumSlider(lang_parse('ke'), 'ryoiki_ke', 1, 20, 3)
 			panel:NumSlider(lang_parse('kd'), 'ryoiki_kd', 1, 20, 3)
+			panel:NumSlider(lang_parse('expand_speed'), 'ryoiki_expand_speed', 50, 2000, 3)
 			panel:CheckBox(lang_parse('prethreat'), 'ryoiki_prethreat')
 			panel:CheckBox(lang_parse('threat'), 'ryoiki_threat')
 			panel:Help('---------'..lang_parse('client')..'---------')

@@ -1,5 +1,4 @@
 if CLIENT then
-	local t2Mat = Material('Models/effects/vol_light001')
     local measureState = false
 	local measureResult = 0
 
@@ -7,20 +6,23 @@ if CLIENT then
 	local function getMeasureEnts()
 		if !istable(measureEnts) then measureEnts = {} end
 		for i = 1, 2 do
-			if !IsValid(measureEnts[i]) then measureEnts[i] = ClientsideModel('models/dav0r/hoverball.mdl') end
-			if !measureEnts[i]:GetNoDraw() then measureEnts[i]:SetNoDraw(true) end
-			// measureEnts[i]:SetMaterial('models/wireframe')
+			if !IsValid(measureEnts[i]) then 
+				measureEnts[i] = ClientsideModel('models/dav0r/hoverball.mdl')
+				measureEnts[i]:SetMaterial('Models/effects/vol_light001') 
+			end
 		end	
 		return measureEnts
 	end
 
+
 	hook.Add('PostDrawOpaqueRenderables', 'ryoiki_measure', function()
         -- 测量特效
+		local dt = FrameTime() / game.GetTimeScale()
 		local measureSensitivity = GetConVar('ryoiki_measure_sensitivity'):GetFloat()
 		if measureState then
-			measureResult = measureResult + FrameTime() * measureSensitivity
+			measureResult = measureResult + dt * measureSensitivity
 		else
-			measureResult = math.max(measureResult - FrameTime() * measureSensitivity * 3, 0) 
+			measureResult = math.max(measureResult - dt * measureSensitivity * 3, 0) 
 		end
 
 		if measureResult == 0 then return end
@@ -53,11 +55,8 @@ if CLIENT then
 			render.SetStencilFailOperation(STENCIL_KEEP)
 			render.SetStencilZFailOperation(STENCIL_INCR)
 			// 使用特殊材质便捷双面渲染
-			render.OverrideColorWriteEnable(true, false)
-			render.MaterialOverride(t2Mat)
-				measureEnts[2]:DrawModel()
-			render.MaterialOverride()
-			render.OverrideColorWriteEnable(false)
+			measureEnts[2]:DrawModel()
+
 
 			render.SetStencilReferenceValue(0)
 			render.SetStencilCompareFunction(STENCIL_EQUAL)
@@ -74,10 +73,8 @@ if CLIENT then
 			render.SetStencilPassOperation(STENCIL_KEEP)
 			render.SetStencilFailOperation(STENCIL_KEEP)
 			render.SetStencilZFailOperation(STENCIL_INCR)
-
-			render.MaterialOverride(t2Mat)
-				measureEnts[1]:DrawModel()
-			render.MaterialOverride()
+			measureEnts[1]:DrawModel()
+	
 
 			render.SetStencilReferenceValue(0)
 			render.SetStencilCompareFunction(STENCIL_EQUAL)
@@ -90,8 +87,7 @@ if CLIENT then
 		render.SetStencilEnable(false)
 		render.SuppressEngineLighting(false)
 	end)
-
-
+	
 	concommand.Add('+ryoiki_tenkai', function(ply, args)
 		measureState = true
 		hook.Run('ryoiki_measure', ply, args[1])
@@ -105,9 +101,7 @@ if CLIENT then
 		measureState = false
 	end)
 
-
 end
-
 
 
 

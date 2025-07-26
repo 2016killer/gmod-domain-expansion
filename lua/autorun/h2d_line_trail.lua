@@ -29,7 +29,7 @@ if CLIENT then
 		for i = 1, range do 
 			local part = emitter:Add(mat, startPos + lineDir * unitLen * i) 	
 			if part then
-				part:SetDieTime(math.max((i * dieTimeUnit), 0.1)) 
+				part:SetDieTime(math.max((i * dieTimeUnit), 0.01)) 
 
 				part:SetStartAlpha(255) 
 				part:SetEndAlpha(255)
@@ -47,7 +47,7 @@ if CLIENT then
 	end
 
 
-	function h2d_LineTrailSphere(diameter, center, emitter, mat, width, unitLen, num)
+	function h2d_LineTrailSphere(diameter, center, emitter, mat, width, unitLen, num, dieTime)
 		-- 在指定区域创建随机直线尾迹
 		-- diameter, center 直径，中心
 		-- emitter=ParticleEmitter(zero) 发射器
@@ -58,6 +58,7 @@ if CLIENT then
 		
 		local needFinish = emitter == nil
 		emitter = emitter or ParticleEmitter(zero)
+		dieTime = dieTime or 0.25
 
 		local lineLen = diameter * 0.5
 		for i = 1, num do
@@ -67,7 +68,7 @@ if CLIENT then
 			h2d_LineTrail(emitter, mat, lineCenter - lineDir * lineLen, lineCenter + lineDir * lineLen, 
 				width, 
 				unitLen, 
-				0.5)
+				dieTime)
 		end
 		
 
@@ -84,7 +85,7 @@ if CLIENT then
 		unitLen = unitLen or 15
 		duration = duration or 5
 		period = period or 0.01
-		numPer = numPer or 5
+		numPer = numPer or 1
 
 		// 边界条件
 		if !isnumber(diameter) then error('diameter invalid') end 
@@ -168,10 +169,10 @@ if CLIENT then
 
 	concommand.Add('h2d_debug_bladestorm_effect', function(ply)
 		local tr = ply:GetEyeTrace()
-		local diameter = 2000
+		local diameter = 1000
 		local center = tr.HitPos + tr.HitNormal * 125 
-		h2d_bladestorm_effect(diameter, center, 'h2d/laserblack', 30, 200)
-		h2d_bladestorm_effect(diameter, center, 'h2d/laserblack2', 30, 200)
+		h2d_bladestorm_effect(diameter, center, 'h2d/laserblack', 30, 100)
+		h2d_bladestorm_effect(diameter, center, 'h2d/laserblack2', 30, 100)
 	end)
 
 

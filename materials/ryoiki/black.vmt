@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+    "$basetexture" "color/black"  
+    "$nocull" "0"                  
+    "$ignorez" "0"                 
+    "$alphatest" "0"              
+    "$translucent" "0"             
+}
