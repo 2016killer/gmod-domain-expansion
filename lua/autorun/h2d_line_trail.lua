@@ -146,12 +146,14 @@ if CLIENT then
 
 	local startPos
 	concommand.Add('h2d_debug_line_trail', function(ply)
+		local pos = ply:GetEyeTrace().HitPos
 		if startPos == nil then
-			startPos = LocalPlayer():GetEyeTrace().HitPos
+			startPos = pos
 		else
 			local emitter = ParticleEmitter(Vector())
-			local endPos = LocalPlayer():GetEyeTrace().HitPos
-			h2d_LineTrail(emitter, 'models/wireframe', startPos, endPos, 30, 10, 0.5)
+			h2d_LineTrail(emitter, 'models/wireframe', startPos, pos, 30, 10, 0.5)
+			print((startPos - pos):Length())
+			debugoverlay.Line(startPos, pos, 5, Color(255, 0, 0), true)
 			startPos = nil
 			emitter:Finish()
 		end

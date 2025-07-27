@@ -1,15 +1,15 @@
 ENT.Type = 'anim'
-ENT.Base = 'ryoiki_base'
+ENT.Base = 'domain_base'
 
 ENT.ClassName = 'fukuma_mizushi'
 ENT.PrintName = 'Fukuma Mizushi' 
-ENT.Category = 'ryoiki'
+ENT.Category = 'domain'
 ENT.Spawnable = true
 
 // weapons/crossbow/bolt_fly4.wav
 // weapons/flashbang/flashbang_explode2.wav
 // weapons/fx/nearmiss/bulletltor03.wav
-function ENT:Run(ents)
+function ENT:Run(owner, ents)
     -- 领域效果
     if SERVER then
         local dmginfo = DamageInfo()
@@ -61,7 +61,7 @@ function ENT:Run(ents)
     end
 end
 
-function ShellRotate(shell) 
+local function ShellRotate(shell) 
     local extEnt, intEnt = shell.extEnt, shell.intEnt
     extEnt:SetAngles(extEnt:GetAngles() + Angle(0, 500 * FrameTime()))
     intEnt:SetAngles(intEnt:GetAngles() + Angle(0, 500 * FrameTime()))
@@ -72,8 +72,8 @@ function ENT:Initialize()
     if CLIENT then
         self.shells = {
             [RYOIKI_STATE_EXPAND] = {
-                extMaterial = 'ryoiki/black',
-                intMaterial = 'ryoiki/black',
+                extMaterial = 'domain/black',
+                intMaterial = 'domain/black',
     
                 progress = 0
             },
@@ -84,10 +84,14 @@ function ENT:Initialize()
                 progress = 0,
                 custom = ShellRotate
             }
+            ,
+            [RYOIKI_STATE_BREAK] = {
+                extMaterial = 'domain/black',
+                intMaterial = 'domain/black',
+                fadeInSpeed = 5,
+                progress = 0
+            }
         }
-
-        self.shellFadeInSpeed = 1
-        self.shellFadeOutSpeed = 1
     end
 end
 

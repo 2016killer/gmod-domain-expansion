@@ -1,6 +1,6 @@
 if CLIENT then
 	local lang = {
-		category = {'Jujutsu Ryoiki', '咒术回战-领域'},
+		category = {'Jujutsu Domain', '咒术回战-领域'},
 		name = {'fukuma mizushi', '伏魔御厨子'}
 	}
 	

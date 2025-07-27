@@ -15,10 +15,10 @@ if CLIENT then
 	end
 
 
-	hook.Add('PostDrawOpaqueRenderables', 'ryoiki_measure', function()
+	hook.Add('PostDrawOpaqueRenderables', 'domain_measure', function()
         -- 测量特效
 		local dt = FrameTime() / game.GetTimeScale()
-		local measureSensitivity = GetConVar('ryoiki_measure_sensitivity'):GetFloat()
+		local measureSensitivity = GetConVar('domain_measure_sensitivity'):GetFloat()
 		if measureState then
 			measureResult = measureResult + dt * measureSensitivity
 		else
@@ -28,10 +28,11 @@ if CLIENT then
 		if measureResult == 0 then return end
 
 		local measureEnts = getMeasureEnts()
-		for i = 1, 2 do
-			measureEnts[i]:SetModelScale(measureResult * 0.17 - i)
-			measureEnts[i]:SetPos(LocalPlayer():GetPos())
-		end
+
+		measureEnts[1]:SetModelScale(measureResult * 0.166 + 2)
+		measureEnts[1]:SetPos(LocalPlayer():GetPos())
+		measureEnts[2]:SetModelScale(measureResult * 0.166)
+		measureEnts[2]:SetPos(LocalPlayer():GetPos())
 
 		// render.DrawWireframeSphere(LocalPlayer():GetPos(), measureResult, 32, 32, Color(255, 255, 0, 100), true)
 
@@ -88,23 +89,20 @@ if CLIENT then
 		render.SuppressEngineLighting(false)
 	end)
 	
-	concommand.Add('+ryoiki_tenkai', function(ply, args)
+	concommand.Add('+domain_expand', function(ply, args)
 		measureState = true
-		hook.Run('ryoiki_measure', ply, args[1])
+		// hook.Run('domain_measure', ply, args[1])
 		// local ammo = owner:GetAmmoCount('EKATANA')
 		// if ammo < 1 then owner:EmitSound(Sound('noEnergy'),100,100) return end
 		// if !VManip then return end
 		// if VManip:PlayAnim("exedrop") then exedrop = true net.Start('exedrop') owner:EmitSound(Sound('Pistol.ItemPickupExtend')) net.WriteBool(true) net.SendToServer()  end
 	end)
 
-	concommand.Add('-ryoiki_tenkai', function(ply)
+	concommand.Add('-domain_expand', function(ply)
 		measureState = false
+		// net.Start('domain_expand')
+		// net.SendToServer()
 	end)
 
 end
-
-
-
-
-
 
