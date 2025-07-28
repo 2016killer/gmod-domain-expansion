@@ -4,7 +4,7 @@ function ENT:InitShells()
     self.shells = {
         [RYOIKI_STATE_EXPAND] = {material = 'domain/black'},
         [RYOIKI_STATE_RUN] = {material = 'Models/effects/comball_sphere', fadeOutSpeed=5},
-        [RYOIKI_STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
+        [RYOIKI_STATE_BREAK] = {material = 'domain/black'}
     }
 end
 
@@ -13,26 +13,33 @@ function ENT:Effect(owner, dt)
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
     if timer >= 0.05 then
         timer = timer - 0.05
-        h2d_LineTrailSphere(
-            self.radius * 2, 
-            self:GetPos(), 
+        local diameter = self.radius * 2
+        local center = self:GetPos()
+        local width = 30
+        local unitLen = math.max(1, diameter * 0.1)
+        local num = math.min(30, math.max(1, math.floor(diameter / 100)))
+        local dieTime = 0.1
+
+        fkm_LineTrailSphere(
+            diameter, 
+            center, 
             emitter, 
-            'h2d/laserblack', 
-            30, 
-            math.max(1, self.radius * 0.2), 
-            10,
-            0.1
+            'fkm/laserblack', 
+            width, 
+            unitLen, 
+            num,
+            dieTime
         )
 
-        h2d_LineTrailSphere(
-            self.radius * 2, 
-            self:GetPos(), 
+        fkm_LineTrailSphere(
+            diameter, 
+            center, 
             emitter, 
-            'h2d/laserblack2', 
-            30, 
-            math.max(1, self.radius * 0.2), 
-            10,
-            0.1
+            'fkm/laserblack2', 
+            width, 
+            unitLen, 
+            num,
+            dieTime
         )
     end
     self.emitter = emitter

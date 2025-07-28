@@ -81,7 +81,7 @@ function ENT:Think()
 
         self:Run()
     elseif state == RYOIKI_STATE_BREAK then 
-        self.radius = math.max(self.radius - self.expandSpeed * dt * 3, 0)
+        self.radius = math.max(self.radius - 1000 * dt, 0)
         self:SetScale(self.radius * 0.166)
         if SERVER and self.radius <= 0 then self:Remove() end
 

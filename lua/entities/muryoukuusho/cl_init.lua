@@ -91,13 +91,3 @@ function ENT:InitShellEnts()
 end
 
 
-concommand.Add('testt', function(ply)
-    local ent = ply:GetEyeTrace().Entity
-    // ent:SetMaterial(mryksMat:GetName())
-    ent:SetMaterial('mryks/starlitsky')
-    // ent.RenderOverride = function(self)
-    //     render.MaterialOverride(mryksMat)
-    //     self:DrawModel()
-    //     render.MaterialOverride()
-    // end
-end)
