@@ -1,8 +1,5 @@
 include('shared.lua')
 
-local zero = Vector()
-local mat = Material('domain/starlitsky')
-
 function ENT:InitShells() 
     self.shells = {
         [RYOIKI_STATE_EXPAND] = {material = 'domain/white'},
@@ -11,6 +8,10 @@ function ENT:InitShells()
     }
 end
 
+local zero = Vector()
+local backgroundMat = Material('mryks/starlitsky')
+local ballMat1 = Material('models/props_pipes/Pipesystem01a_skin3')
+local ballMat2 = Material('models/props_foliage/tree_deciduous_01a_trunk')
 
 function ENT:InitShellEnts()
     self.BaseClass.InitShellEnts(self)
@@ -25,6 +26,19 @@ function ENT:InitShellEnts()
         local progress = shell.progress or 0
         if progress < 0.05 then return end
 
+        local ang = self.ang or 0
+        ang = ang + 0.5 * FrameTime()
+        self.ang = ang
+
+        local sina = math.sin(ang)
+        local cosa = math.cos(ang)
+
+        local v1 = sina * Vector(1, 0, 0) + cosa * Vector(0, 1, 0)
+        local v2 = sina * Vector(0.707, 0.707, 0) + cosa * Vector(-0.707, 0.707, 0)
+
+        local steps = 16
+        local vz = Vector(0, 0, 2)
+
         render.ClearStencil()
         render.SetStencilEnable(true)
             render.SetStencilWriteMask(255)
@@ -38,6 +52,7 @@ function ENT:InitShellEnts()
             local oldBlend = render.GetBlend()
             render.SetBlend(progress)
             self2:DrawModel()
+            
 
             render.SetStencilCompareFunction(STENCIL_NOTEQUAL)
             render.SetStencilPassOperation(STENCIL_INCR)
@@ -46,20 +61,43 @@ function ENT:InitShellEnts()
 
             render.CullMode(MATERIAL_CULLMODE_CW)
             self2:DrawModel()
+            render.CullMode(MATERIAL_CULLMODE_CCW)
+            
         
             render.SetStencilReferenceValue(1)
             render.SetStencilCompareFunction(STENCIL_EQUAL)
-            
+            render.SetStencilPassOperation(STENCIL_KEEP)
+            render.SetStencilFailOperation(STENCIL_KEEP)
+            render.SetStencilZFailOperation(STENCIL_KEEP)
+
+    
             cam.Start3D(zero, LocalPlayer():EyeAngles())
-            render.SetMaterial(mat)
-            render.DrawSphere(zero, 5, 16, 16, Color(255, 255, 255))
+                render.SetMaterial(backgroundMat)
+                render.DrawSphere(zero, 10, steps, steps)
+                
+                render.SetMaterial(ballMat1)
+                render.DrawSphere(zero + 7 * v1, 1, steps, steps)
+                render.DrawSphere(zero - 7 * v1, 1, steps, steps)
+                
+                render.SetMaterial(ballMat2)
+                render.DrawSphere(zero + 7 * v2 + vz, 1, steps, steps)
+                render.DrawSphere(zero - 7 * v2 + vz, 1, steps, steps)
             cam.End3D() 
-            render.CullMode(MATERIAL_CULLMODE_CCW)
-
             render.SetBlend(oldBlend)
+
+        
         render.SetStencilEnable(false)
-
     end
-    shell.ent = ent
-
 end
+
+
+concommand.Add('testt', function(ply)
+    local ent = ply:GetEyeTrace().Entity
+    // ent:SetMaterial(mryksMat:GetName())
+    ent:SetMaterial('mryks/starlitsky')
+    // ent.RenderOverride = function(self)
+    //     render.MaterialOverride(mryksMat)
+    //     self:DrawModel()
+    //     render.MaterialOverride()
+    // end
+end)

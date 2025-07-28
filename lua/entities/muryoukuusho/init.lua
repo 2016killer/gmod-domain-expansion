@@ -17,3 +17,8 @@ include('shared.lua')
 //         ent:TakeDamageInfo(dmginfo)
 //     end
 // end
+
+function ENT:Cost()
+
+
+end
