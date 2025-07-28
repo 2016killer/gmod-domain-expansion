@@ -34,11 +34,6 @@ function ENT:Initialize()
     self.radius = 0
     self.expandSpeed = GetConVar('domain_expand_speed'):GetFloat() -- 展开速度
 
-    -- 静态
-    self.open = true -- 开放性
-    self.offset = true -- 防御
-    self.effect = true -- 效果
-
     self:SetModel('models/dav0r/hoverball.mdl')
     self:DrawShadow(false)
 end
@@ -67,25 +62,22 @@ function ENT:Think()
 
         local owner = self:GetOwner()
         local center = owner:GetPos()
-        if !self.effect then self:Move(center) end 
+
     elseif state == RYOIKI_STATE_RUN then
         local owner = self:GetOwner()
         local center = owner:GetPos()
 
         self:Cost(owner, dt)  
-        if self.effect then 
-            if SERVER then
-                local entsIn = {}
-                for _, ent in ipairs(ents.FindInSphere(center, self.radius)) do
-                    if ent == self or ent == owner then continue end
-                    table.insert(entsIn, ent)
-                end
-                self:Effect(owner, entsIn, dt) 
-            else
-                self:Effect(owner, dt) 
+        if SERVER then
+            local entsIn = {}
+            for _, ent in pairs(ents.FindInSphere(center, self.radius)) do
+                if ent == self or ent == owner then continue end
+                table.insert(entsIn, ent)
             end
+            self:Effect(owner, entsIn, dt) 
+        else
+            self:Effect(owner, dt) 
         end
-        if !self.effect then self:Move(center) end 
 
         self:Run()
     elseif state == RYOIKI_STATE_BREAK then 

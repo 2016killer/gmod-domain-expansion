@@ -3,16 +3,9 @@ include('shared.lua')
 function ENT:InitShells() 
     self.shells = {
         [RYOIKI_STATE_EXPAND] = {material = 'domain/black'},
-        [RYOIKI_STATE_RUN] = {material = 'models/shadertest/shader3'},
+        [RYOIKI_STATE_RUN] = {material = 'Models/effects/comball_sphere', fadeOutSpeed=5},
         [RYOIKI_STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
     }
-end
-
-function ENT:InitShellEnts() 
-    self.BaseClass.InitShellEnts(self)
-    for _, shell in ipairs(self.shells) do
-        if IsValid(shell.ent) then shell.ent:SetAngles(Angle()) end
-    end
 end
 
 function ENT:Effect(owner, dt)
@@ -47,11 +40,13 @@ function ENT:Effect(owner, dt)
 end
 
 function ENT:Run()
+    local dt = FrameTime()
     local shellEnt = self.shells[RYOIKI_STATE_RUN].ent
-    if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(30, 30, 0)) end
+    if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
 end
 
 function ENT:Break()
+    local dt = FrameTime()
     local shellEnt = self.shells[RYOIKI_STATE_RUN].ent
-    if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(30, 30, 0)) end
+    if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
 end

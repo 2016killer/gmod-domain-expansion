@@ -10,7 +10,7 @@ include('shared.lua')
 //     dmginfo:SetDamageType(DMG_BULLET)
 //     dmginfo:SetDamageForce(VectorRand() * 500)
 
-//     for _, ent in ipairs(entsIn) do  
+//     for _, ent in pairs(entsIn) do  
 //         ent:TakeDamageInfo(dmginfo)
 //         ent:TakeDamageInfo(dmginfo)
 //         ent:TakeDamageInfo(dmginfo)

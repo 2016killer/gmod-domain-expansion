@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+    "$basetexture" "domain/starlitsky"  
+    "$nocull" "0"                  
+    "$ignorez" "0"                 
+    "$alphatest" "0"              
+    "$translucent" "0"             
+}
