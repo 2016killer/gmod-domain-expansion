@@ -1,8 +1,8 @@
 ENT.Type = 'anim'
 ENT.Base = 'domain_base'
 
-ENT.ClassName = 'fukuma_mizushi'
-ENT.PrintName = 'Fukuma Mizushi' 
+ENT.ClassName = 'fukuma'
+ENT.PrintName = 'Fukuma' 
 ENT.Category = 'domain'
 ENT.Spawnable = true
 

@@ -1,7 +1,7 @@
 if CLIENT then
 	local lang = {
 		category = {'Jujutsu Domain', '咒术回战-领域'},
-		name = {'fukuma mizushi', '伏魔御厨子'}
+		name = {'fukuma', '伏魔神龛'}
 	}
 	
 	local lang_type = GetConVar('cl_language'):GetString() == 'schinese' and 2 or 1

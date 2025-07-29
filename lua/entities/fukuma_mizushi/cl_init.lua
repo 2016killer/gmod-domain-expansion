@@ -68,6 +68,11 @@ function ENT:Effect(owner, dt)
     end
     self.emitter = emitter
     self.timerEffect = timer
+
+
+    if LocalPlayer():GetPos():Distance(self:GetPos()) < 10000 then
+        self:EmitSound('fkm/laserstorm.wav')
+    end
 end
 
 

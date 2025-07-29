@@ -134,7 +134,7 @@ if SERVER then
     net.Receive('domain_expand', function(len, ply)
         print(ply)
         // local center = ply:GetPos()
-        // local entity = ents.Create('fukuma_mizushi')
+        // local entity = ents.Create('fukuma')
         // entity:SetPos(center)
         // entity:SetAngles(Angle(0, 0, 0))
         // entity:Spawn()
