@@ -69,8 +69,8 @@ function ENT:InitShellEnts()
             render.SetStencilPassOperation(STENCIL_KEEP)
             render.SetStencilFailOperation(STENCIL_KEEP)
             render.SetStencilZFailOperation(STENCIL_KEEP)
-
     
+            render.OverrideDepthEnable(true, false)
             cam.Start3D(zero, LocalPlayer():EyeAngles())
                 render.SetMaterial(backgroundMat)
                 render.DrawSphere(zero, 10, steps, steps)
@@ -83,6 +83,8 @@ function ENT:InitShellEnts()
                 render.DrawSphere(zero + 7 * v2 + vz, 1, steps, steps)
                 render.DrawSphere(zero - 7 * v2 + vz, 1, steps, steps)
             cam.End3D() 
+            render.OverrideDepthEnable(false)
+
             render.SetBlend(oldBlend)
 
         
@@ -90,4 +92,27 @@ function ENT:InitShellEnts()
     end
 end
 
+function ENT:Effect(owner, dt)
+    local timer = (self.timerEffect or 0) + dt
+    local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
+    local period = 0.5
+    if timer >= period then
+        timer = timer - period
+        local radius = self.radius
+        local center = self:GetPos()
+        local num = math.min(500, math.max(1, math.floor(radius * 0.25)))
+        local dieTime = 1
 
+        emitter:domain_SphereSnow(
+            'effects/spark', 
+            radius,
+            center,
+            30,
+            30, 
+            num,
+            dieTime
+        )
+    end
+    self.emitter = emitter
+    self.timerEffect = timer
+end

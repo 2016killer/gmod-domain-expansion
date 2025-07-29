@@ -8,43 +8,90 @@ function ENT:InitShells()
     }
 end
 
+local function LaserStorm(emitter, mat, radius, center, unitLen, num, dieTime) 
+    -- 视觉特效
+    for i = 1, num do
+        local dirSample = AngleRand()
+        // local radiusSample = radius * math.pow(math.random(), 0.333) 
+        local radiusSample = radius * math.sqrt(math.random())
+        local radSample = math.random() * 6.28
+
+        local sin = math.sin(radSample)
+        local cos = math.cos(radSample)
+
+        local lineCenter = center + dirSample:Forward() * radiusSample
+        local lineDir = dirSample:Up() * sin + dirSample:Right() * cos
+        local lineLen = math.sqrt(radius * radius - radiusSample * radiusSample)
+
+        emitter:domain_LaserTrail(
+                mat, 
+                lineCenter + lineDir * lineLen,
+                lineCenter - lineDir * lineLen,
+                30,
+                unitLen,
+                dieTime
+        )
+
+    end
+end
+
 function ENT:Effect(owner, dt)
     local timer = (self.timerEffect or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
     if timer >= 0.05 then
         timer = timer - 0.05
-        local diameter = self.radius * 2
+        local radius = self.radius
         local center = self:GetPos()
-        local width = 30
-        local unitLen = math.max(1, diameter * 0.1)
-        local num = math.min(30, math.max(1, math.floor(diameter / 100)))
+        local unitLen = math.max(1, radius * 0.1)
+        local num = math.min(30, math.max(1, math.floor(radius / 100)))
         local dieTime = 0.1
 
-        fkm_LineTrailSphere(
-            diameter, 
-            center, 
+        LaserStorm(
             emitter, 
-            'fkm/laserblack', 
-            width, 
+            'fkm/laserblack',
+            radius, 
+            center, 
             unitLen, 
-            num,
+            num, 
             dieTime
         )
 
-        fkm_LineTrailSphere(
-            diameter, 
-            center, 
+        LaserStorm(
             emitter, 
-            'fkm/laserblack2', 
-            width, 
+            'fkm/laserblack2',
+            radius, 
+            center, 
             unitLen, 
-            num,
+            num, 
             dieTime
         )
     end
     self.emitter = emitter
     self.timerEffect = timer
 end
+
+
+
+concommand.Add('fkm_debug_laser_storm', function(ply)
+    local tr = ply:GetEyeTrace()
+    local radius = 5000
+    local center = tr.HitPos
+
+    local emitter = ParticleEmitter(Vector())
+    
+    LaserStorm(
+        emitter, 
+        'fkm/laserblack',
+        radius, 
+        center, 
+        radius * 0.1, 
+        100, 
+        5
+    )
+
+    emitter:Finish()
+end)
+
 
 function ENT:Run()
     local dt = FrameTime()
@@ -56,4 +103,9 @@ function ENT:Break()
     local dt = FrameTime()
     local shellEnt = self.shells[RYOIKI_STATE_RUN].ent
     if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
+end
+
+function ENT:OnRemove()
+    self.BaseClass.OnRemove(self)
+    if IsValid(self.emitter) then self.emitter:Finish() end
 end
