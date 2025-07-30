@@ -71,7 +71,7 @@ function ENT:DrawCustomShell(state, shell, progress)
     -- (特性) 自定义外壳渲染
 end
 
-function ENT:Effect(owner, dt)
+function ENT:Impact(owner, dt)
     -- (特性) 效果
 end
 

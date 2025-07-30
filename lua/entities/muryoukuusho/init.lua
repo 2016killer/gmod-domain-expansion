@@ -2,7 +2,7 @@ AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
 
-function ENT:Effect(owner, entsIn, dt)
+function ENT:Impact(owner, entsIn, dt)
     local dmginfo = DamageInfo()
     dmginfo:SetDamage(10)
     dmginfo:SetAttacker(self) 

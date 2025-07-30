@@ -12,7 +12,7 @@ function ENT:BreakCondition()
 end
 
 
-function ENT:Effect(owner, entsIn, dt)
+function ENT:Impact(owner, entsIn, dt)
     -- (特性) 效果
 end
 

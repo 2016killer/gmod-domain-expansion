@@ -74,9 +74,9 @@ function ENT:Think()
                 if ent == self or ent == owner then continue end
                 table.insert(entsIn, ent)
             end
-            self:Effect(owner, entsIn, dt) 
+            self:Impact(owner, entsIn, dt) 
         else
-            self:Effect(owner, dt) 
+            self:Impact(owner, dt) 
         end
 
         self:Run()
@@ -114,8 +114,16 @@ function ENT:SetScale(scale)
     end
 end
 
-
-
+function ENT:Cover(input)
+    if isvector(input) then
+        local dvec = input - self:GetPos()  
+        return dvec:Dot(dvec) <= self.radius * self.radius
+    elseif isentity(input) then
+        return self:Cover(input:GetPos())
+    else
+        error('输入必须为向量或实体类型')
+    end
+end
 
 
 

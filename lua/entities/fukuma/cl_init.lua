@@ -8,7 +8,7 @@ function ENT:InitShells()
     }
 end
 
-local function LaserStorm(emitter, mat, radius, center, unitLen, num, dieTime) 
+local function LaserStorm(emitter, mat, radius, center, width, unitLen, num, dieTime) 
     -- 视觉特效
     for i = 1, num do
         local dirSample = AngleRand()
@@ -27,7 +27,7 @@ local function LaserStorm(emitter, mat, radius, center, unitLen, num, dieTime)
                 mat, 
                 lineCenter + lineDir * lineLen,
                 lineCenter - lineDir * lineLen,
-                30,
+                width,
                 unitLen,
                 dieTime
         )
@@ -35,15 +35,17 @@ local function LaserStorm(emitter, mat, radius, center, unitLen, num, dieTime)
     end
 end
 
-function ENT:Effect(owner, dt)
-    local timer = (self.timerEffect or 0) + dt
+function ENT:Impact(owner, dt)
+    local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
-    if timer >= 0.05 then
-        timer = timer - 0.05
+    local period = 0.05
+
+    if timer >= period then
+        timer = timer - period
         local radius = self.radius
         local center = self:GetPos()
         local unitLen = math.max(1, radius * 0.1)
-        local num = math.min(30, math.max(1, math.floor(radius / 100)))
+        local num = math.min(30, math.max(1, math.floor(radius / 10)))
         local dieTime = 0.1
 
         LaserStorm(
@@ -51,6 +53,7 @@ function ENT:Effect(owner, dt)
             'fkm/laserblack',
             radius, 
             center, 
+            30,
             unitLen, 
             num, 
             dieTime
@@ -61,18 +64,21 @@ function ENT:Effect(owner, dt)
             'fkm/laserblack2',
             radius, 
             center, 
+            30,
             unitLen, 
             num, 
             dieTime
         )
+
+        if self:Cover(LocalPlayer()) then
+            self.soundID = LocalPlayer():StartLoopingSound('fkm/laserstorm.wav')
+        else
+            if self.soundID then LocalPlayer():StopLoopingSound(self.soundID) end
+        end
     end
+
     self.emitter = emitter
-    self.timerEffect = timer
-
-
-    if LocalPlayer():GetPos():Distance(self:GetPos()) < 10000 then
-        self:EmitSound('fkm/laserstorm.wav')
-    end
+    self.effectTimer = timer
 end
 
 
@@ -89,6 +95,7 @@ concommand.Add('fkm_debug_laser_storm', function(ply)
         'fkm/laserblack',
         radius, 
         center, 
+        30,
         radius * 0.1, 
         100, 
         5
@@ -113,4 +120,5 @@ end
 function ENT:OnRemove()
     self.BaseClass.OnRemove(self)
     if IsValid(self.emitter) then self.emitter:Finish() end
+    if self.soundID then LocalPlayer():StopLoopingSound(self.soundID) end
 end

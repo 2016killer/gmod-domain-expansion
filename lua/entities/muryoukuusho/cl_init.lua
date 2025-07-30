@@ -92,10 +92,11 @@ function ENT:InitShellEnts()
     end
 end
 
-function ENT:Effect(owner, dt)
-    local timer = (self.timerEffect or 0) + dt
+function ENT:Impact(owner, dt)
+    local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
     local period = 0.5
+
     if timer >= period then
         timer = timer - period
         local radius = self.radius
@@ -113,6 +114,14 @@ function ENT:Effect(owner, dt)
             dieTime
         )
     end
+
     self.emitter = emitter
-    self.timerEffect = timer
+    self.effectTimer = timer
 end
+
+function ENT:OnRemove()
+    self.BaseClass.OnRemove(self)
+    if IsValid(self.emitter) then self.emitter:Finish() end
+end
+
+// ambient/energy/zap2.wav
