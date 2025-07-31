@@ -3,6 +3,32 @@ if CLIENT then
 	local zero = Vector()
 	local function IsZero(v) return v.x == 0 and v.y == 0 and v.z == 0 end
 
+	function domain_UniformTriangle(v1, v2)
+		-- 三角形内均匀采样点
+        local x = math.random()
+        local y = math.random()
+        if x + y > 1 then
+            x = 1 - x
+            y = 1 - y
+        end
+		return v1 * x + v2 * y
+	end
+
+	function domain_UniformSphere(radius)
+		-- 球体内均匀采样点
+		return VectorRand() * radius * math.pow(math.random(), 0.333) 
+	end
+
+	function domain_UniformSphereSurface(radius)
+		-- 球面均匀采样点
+		return VectorRand() * radius * math.sqrt(math.random())
+	end
+
+	function domain_LinearSphere(radius)
+		-- 球体内径向线性采样点
+		return VectorRand() * radius * math.random()
+	end
+
     EMITTER.domain_LaserTrail = function(self, mat, startPos, endPos, width, unitLen, dieTime)
 		-- 创建激光尾迹
 		-- mat 材质名
@@ -83,9 +109,7 @@ if CLIENT then
 		-- dieTime 消亡时间
 	
 		for i = 1, num do 
-			local dirSample = VectorRand()
-			local radiusSample = radius * math.pow(math.random(), 0.333) 
-			local part = self:Add(mat, center + dirSample * radiusSample) 
+			local part = self:Add(mat, center + domain_UniformSphereSurface(radius)) 
 			if part then
 				part:SetDieTime(dieTime) 
 
@@ -125,6 +149,91 @@ if CLIENT then
         
 		emitter:Finish()
 	end)
+
+	function domain_GetAABBScanData(min, max, dir)
+    	-- 获取长方体的切面扫描数据
+		-- 获取12条棱的深度区间
+		-- 可根据深度区间快速计算相交或交点
+
+		// 获取12棱的位置、深度和全局深度极值
+		local dimensions = max - min
+		local axes = {
+			Vector(0, 0, dimensions.z), 
+			Vector(0, -dimensions.y, 0), 
+			Vector(dimensions.x, 0, 0)
+		}
+
+		local edgeData = {}
+		local minDepth, maxDepth = -math.huge, math.huge
+		for _ = 0, 2 do
+			for i = 0, 3 do
+				local reference = min
+				if bit.band(i, 0x01) != 0 then reference = reference + axes[1] end
+				if bit.band(i, 0x02) != 0 then reference = reference + axes[2] end
+
+				local lineAxis = axes[3]
+				local linePos1 = reference
+				local linePos2 = reference + lineAxis
+
+				local depth1 = linePos1:Dot(dir)
+				local depth2 = linePos2:Dot(dir)
+
+				if math.abs(depth1 - depth2) < 0.0000152587890625 then
+					continue
+				end
+
+				if depth1 > depth2 then
+					linePos1, linePos2 = linePos2, linePos1
+					depth1, depth2 = depth2, depth1
+					lineAxis = -lineAxis
+				end
+
+				if depth1 < minDepth then minDepth = depth1 end
+				if depth2 > maxDepth then maxDepth = depth2 end
+
+				edgeData[#edgeData + 1] = {
+					lineStart = linePos1,
+					lineAxis = lineAxis,
+
+					depthMin = depth1,
+					depthMax = depth2
+				}
+			end
+			axes[1], axes[3] = axes[3], axes[1]
+		end
+
+		return {
+			edgeData = edgeData, 
+			minDepth = minDepth,
+			maxDepth = maxDepth,
+			dir = dir
+		}
+	end
+
+	function domain_FastAABBSection(scanData, depth)
+		-- 快速计算AABB与深度区间的相交或交点
+		-- 返回截面点列表
+
+		local minDepth = scanData.minDepth
+		local maxDepth = scanData.maxDepth
+		if depth < minDepth or depth > maxDepth then
+			return nil
+		end
+
+		local iPoints = {}
+		for _, edge in ipairs(scanData.edgeData) do
+			if depth >= edge.depthMin and depth <= edge.depthMax then
+				iPoints[#iPoints + 1] = edge.lineStart + edge.lineAxis * (depth - edge.depthMin) / (edge.depthMax - edge.depthMin)
+			end
+		end
+
+		if #iPoints < 2 then
+			return nil
+		else
+			return iPoints
+		end
+	end
+
 end
 
 

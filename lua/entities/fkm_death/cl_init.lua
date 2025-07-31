@@ -103,3 +103,14 @@ concommand.Add('domain_clear_fkm_death', function()
         ent:Remove()
     end
 end)
+
+concommand.Add('test', function()
+    local tr = LocalPlayer():GetEyeTrace()
+    local ent = tr.Entity
+    local dir = tr.Normal
+
+    
+end)
+
+
+
