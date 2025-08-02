@@ -5,7 +5,7 @@ domain_materialTable = {}
 local zero = Vector()
 local zerof = 0.0000152587890625
 local white = Color(255, 255, 255, 255)
-
+local sectionNum = 5
 
 function ENT:Initialize()
     self.timer = 0
@@ -68,17 +68,31 @@ function ENT:ParticleEffect(depth)
     end
 end
 
+function ENT:UpdateActiveObj(depth)
+    local unit = self.depthRange / (sectionNum + 1)
+    local progress = (depth - self.startDepth) / unit
+
+    if progress > math.ceil(sectionNum * 0.5) then
+        self.activeObj = self.sectionObjs[math.Clamp(math.floor(progress), 1, sectionNum)]
+    else
+        self.activeObj = self.sectionObjs[math.Clamp(math.ceil(progress), 1, sectionNum)]
+    end
+end
+
 function ENT:Think()
     if self.bornTime == nil then return end 
 
     local lifetime = (CurTime() - self.bornTime) * self.speed
     local depth = self.startDepth + lifetime * self.depthRange
     if depth > self.scanData.maxDepth then self:Remove() end
-    -- 裁剪特效
+    self.currentDepth = depth
+    // 裁剪特效
     self:UpdateClip(depth)
 
+    // 裁剪平面
+    self:UpdateActiveObj(depth)
 
-    -- 粒子特效
+    // 粒子特效
     self.timer = self.timer + FrameTime()
     if self.timer >= 0.1 then
         self.timer = self.timer - 0.1
@@ -95,7 +109,6 @@ function ENT:InitModel(modelName, materialName, color, scale, matType)
 
     self:SetModel(modelName)
     self:SetMaterial(materialName)
-    self:SetColor(color)
     self:SetModelScale(scale)
 end
 
@@ -111,8 +124,69 @@ function ENT:InitClip(dir, start, speed, mins, maxs)
     self.depthRange = self.scanData.maxDepth - self.scanData.minDepth
     self.startDepth = start * self.depthRange + self.scanData.minDepth
     self.speed = speed
+
+    -- 初始化界面网格
+    local unit = self.depthRange / (sectionNum + 1)
+    local meshs = {}
+    for i = 1, sectionNum do
+        local tris = domain_GetAABBSectionTriangles(self.scanData, self.scanData.minDepth + unit * i)
+        local obj = Mesh()
+        local verts = {}
+
+        for _, tri in ipairs(tris) do
+            for i = 0, 2 do
+                verts[#verts + 1] = {
+                    pos = tri[i + 1],	
+                    u = math.min(1, bit.band(i, 0x01)),
+                    v = math.min(1, bit.band(i, 0x02))
+                }
+            end		
+        end
+        obj:BuildFromTriangles(verts)
+
+        meshs[#meshs + 1] = obj
+    end
+
+    self.sectionObjs = meshs
 end
 
+local mat = CreateMaterial('phoenix_storms/stripes_1', 'UnlitGeneric', {
+    ['$basetexture'] = 'phoenix_storms/stripes',
+    ["$vertexalpha"] = 0,
+    ["$vertexcolor"] = 1
+})
+
+
+function ENT:Draw()
+    render.OverrideDepthEnable(true, true)
+    self:DrawModel()
+    render.OverrideDepthEnable(false)
+    
+    render.ClearStencil()
+    render.SetStencilEnable(true)
+    	render.SetStencilReferenceValue(1)
+		render.SetStencilCompareFunction(STENCIL_ALWAYS)
+		render.SetStencilPassOperation(STENCIL_REPLACE)
+		render.SetStencilFailOperation(STENCIL_KEEP)
+		render.SetStencilZFailOperation(STENCIL_KEEP)
+
+        render.CullMode(MATERIAL_CULLMODE_CW)
+        self:DrawModel()
+        render.CullMode(MATERIAL_CULLMODE_CCW)
+
+        render.SetStencilCompareFunction(STENCIL_EQUAL)
+
+        if IsValid(self.activeObj) then
+            local matrix = self:GetWorldTransformMatrix()
+            matrix:SetTranslation(matrix:GetTranslation() + self.scanData.dir * self.currentDepth)
+            render.SetMaterial(mat)
+            cam.PushModelMatrix(matrix)
+            self.activeObj:Draw() 
+            cam.PopModelMatrix()
+        end
+    render.SetStencilEnable(false)
+
+end
 
 function ENT:OnRemove()
     if self.emitter then self.emitter:Finish() end
@@ -125,10 +199,10 @@ concommand.Add('domain_fkm_death', function(ply)
 
     local ent = ents.CreateClientside('fkm_death')
     ent:SetPos(tr.HitPos + tr.HitNormal * 100)
-    ent:InitModel()
-    ent:InitClip()
+    ent:InitModel('models/props_wasteland/cargo_container01.mdl')
+    ent:InitClip(nil, nil, 0.1)
     ent:Spawn()
-    
+    // ent.bornTime = nil
 end)
 
 concommand.Add('domain_clear_fkm_death', function()
@@ -136,35 +210,6 @@ concommand.Add('domain_clear_fkm_death', function()
         ent:Remove()
     end
 end)
-
-
-
-concommand.Add('test2', function()
-    local pos = LocalPlayer():GetEyeTrace().HitPos
-
-    local emitter = ParticleEmitter(pos)
-    for i = 1, 100 do 
-        local part = emitter:Add('effects/fleck_wood2', pos)
-        if part then
-            part:SetDieTime(1)
-            part:SetStartAlpha(255)
-            part:SetEndAlpha(0)
-            part:SetStartSize(5)
-            part:SetEndSize(0)
-            part:SetGravity(zero)
-            part:SetVelocity(VectorRand() * 100)
-            part:SetAngleVelocity(AngleRand() * 100)
-            part:SetColor(255, 255, 255)
-        end
-    end
-end)
-
-
-
-local function WoodParticle(emitter, num, tris)
-
-end
-
 
 
 local defaultEffectData = {

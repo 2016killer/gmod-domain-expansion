@@ -307,21 +307,10 @@ if CLIENT then
 		local scanData = domain_GetAABBScanData(mins, maxs, dir)
 		local unit = (scanData.maxDepth - scanData.minDepth) / 4
 	
-		table.sort(scanData.edgeData, function(a, b)
-			return a.depthMax < b.depthMax
-		end)
-
 		-- 生成网格
-		local mat = CreateMaterial('phoenix_storms/wood_1', 'UnlitGeneric', {
-			['$basetexture'] = 'phoenix_storms/wood',
-			["$vertexalpha"] = 0,
-			["$vertexcolor"] = 1
-		})
-
-		local centers = {}
 		local meshs = {}
 		for i = 1, 3 do
-			local tris = domain_GetAABBSectionTriangles(scanData,scanData.minDepth + unit * i)
+			local tris = domain_GetAABBSectionTriangles(scanData, scanData.minDepth + unit * i)
 			local obj = Mesh()
 			local verts = {}
 
@@ -341,16 +330,13 @@ if CLIENT then
 
 		local curTime = CurTime()
 		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_aabb_section', function()
-			render.SetMaterial(mat)
+			render.SetColorMaterial()
 			render.CullMode(MATERIAL_CULLMODE_CW)
 			for _, obj in pairs(meshs) do obj:Draw() end
 			render.CullMode(MATERIAL_CULLMODE_CCW)
 			for _, obj in pairs(meshs) do obj:Draw() end
 
 			render.DrawWireframeBox(pos, Angle(), mins, maxs, Color(255, 255, 0), true)
-			for _, center in pairs(centers) do
-				render.DrawWireframeSphere(center, 10, 8, 8)
-			end
 
 			if CurTime() - curTime > 20 then 
 				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_aabb_section')
