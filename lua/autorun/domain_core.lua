@@ -1,9 +1,11 @@
 if CLIENT then
     local EMITTER = FindMetaTable('CLuaEmitter')
 	local zero = Vector()
+	local zerof = 0.0000152587890625
+
 	local function IsZero(v) return v.x == 0 and v.y == 0 and v.z == 0 end
 
-	function domain_UniformTriangle(v1, v2)
+	function domain_UniformTriangle(l1, l2)
 		-- 三角形内均匀采样点
         local x = math.random()
         local y = math.random()
@@ -11,7 +13,7 @@ if CLIENT then
             x = 1 - x
             y = 1 - y
         end
-		return v1 * x + v2 * y
+		return l1 * x + l2 * y
 	end
 
 	function domain_UniformSphere(radius)
@@ -70,7 +72,6 @@ if CLIENT then
 			end
 
             offset = offset + step
-
 		end
     end
 
@@ -150,35 +151,37 @@ if CLIENT then
 		emitter:Finish()
 	end)
 
-	function domain_GetAABBScanData(min, max, dir)
+	function domain_GetAABBScanData(mins, maxs, dir)
     	-- 获取长方体的切面扫描数据
 		-- 获取12条棱的深度区间
 		-- 可根据深度区间快速计算相交或交点
+		-- dir 扫描方向, 必须是单位向量
 
 		// 获取12棱的位置、深度和全局深度极值
-		local dimensions = max - min
+		local dimensions = maxs - mins
 		local axes = {
 			Vector(0, 0, dimensions.z), 
-			Vector(0, -dimensions.y, 0), 
+			Vector(0, dimensions.y, 0), 
 			Vector(dimensions.x, 0, 0)
 		}
 
 		local edgeData = {}
-		local minDepth, maxDepth = -math.huge, math.huge
-		for _ = 0, 2 do
-			for i = 0, 3 do
-				local reference = min
-				if bit.band(i, 0x01) != 0 then reference = reference + axes[1] end
-				if bit.band(i, 0x02) != 0 then reference = reference + axes[2] end
+		local minDepth, maxDepth = math.huge, -math.huge
+		for i = 1, 3 do
+			for j = 0, 3 do
+				local ref = mins
+				if bit.band(j, 0x01) != 0 then ref = ref + axes[1] end
+				if bit.band(j, 0x02) != 0 then ref = ref + axes[2] end
 
 				local lineAxis = axes[3]
-				local linePos1 = reference
-				local linePos2 = reference + lineAxis
+				local linePos1 = ref
+				local linePos2 = ref + lineAxis
 
 				local depth1 = linePos1:Dot(dir)
 				local depth2 = linePos2:Dot(dir)
 
-				if math.abs(depth1 - depth2) < 0.0000152587890625 then
+				if math.abs(depth1 - depth2) < zerof then
+					-- 平行
 					continue
 				end
 
@@ -199,14 +202,19 @@ if CLIENT then
 					depthMax = depth2
 				}
 			end
-			axes[1], axes[3] = axes[3], axes[1]
+			axes[i], axes[3] = axes[3], axes[i]
 		end
 
+		local temp = dir:Angle()
+		local u = temp:Up()
+		local v = temp:Right()
 		return {
 			edgeData = edgeData, 
 			minDepth = minDepth,
 			maxDepth = maxDepth,
-			dir = dir
+			dir = dir,
+			u = u,
+			v = v
 		}
 	end
 
@@ -217,7 +225,7 @@ if CLIENT then
 		local minDepth = scanData.minDepth
 		local maxDepth = scanData.maxDepth
 		if depth < minDepth or depth > maxDepth then
-			return nil
+			return {}
 		end
 
 		local iPoints = {}
@@ -227,12 +235,136 @@ if CLIENT then
 			end
 		end
 
-		if #iPoints < 2 then
-			return nil
-		else
-			return iPoints
-		end
+		return iPoints
 	end
+
+	function domain_3DPoints2ConvexPolygon(points, dir, u, v)
+		-- 点集转凸多边形 (三角形集合)
+		-- dir 方向
+		-- u, v dir的正交基
+		if #points < 3 then return {} end
+
+		if u == nil then
+			local ref = Vector(1, 0, 0)
+			if math.abs(dir:Dot(ref)) + zerof > 1 then ref = Vector(0, 1, 0) end
+
+			u = dir:Cross(ref):GetNormalized()
+			v = dir:Cross(u):GetNormalized()
+		end
+
+		-- 以均值中心逆时针排序点
+		local centroid = Vector(0, 0, 0)
+		local points2D = {}
+		for _, p in ipairs(points) do
+			centroid = centroid + p
+			table.insert(points2D, {
+				x = p:Dot(u),
+				y = p:Dot(v),
+				orig = p -- 保留原3D点
+			})
+		end
+		centroid = centroid / #points
+		local cx, cy = centroid:Dot(u), centroid:Dot(v)
+		
+		// 排序
+		table.sort(points2D, function(a, b)
+			local angleA = math.atan2(a.y - cy, a.x - cx)
+			local angleB = math.atan2(b.y - cy, b.x - cx)
+			return angleA < angleB
+		end)
+		
+		local sortedPoints = {}
+		for _, p in ipairs(points2D) do table.insert(sortedPoints, p.orig) end
+
+	
+		-- 生成三角形集合
+		local tris = {}
+		for i = 2, #sortedPoints - 1 do
+			table.insert(tris, {
+				sortedPoints[1],
+				sortedPoints[i],
+				sortedPoints[i + 1]
+			})
+		end
+		return tris
+	end
+
+
+	function domain_GetAABBSectionTriangles(scanData, depth)
+		local iPoints = domain_FastAABBSection(scanData, depth)
+
+		if #iPoints < 3 then return {} end
+		-- 剖分三角形
+		return domain_3DPoints2ConvexPolygon(iPoints, scanData.dir, scanData.u, scanData.v)
+	end
+
+
+	concommand.Add('domain_debug_aabb_section', function(ply)
+		-- 正六面体对角线方向4等分
+		local pos = LocalPlayer():GetEyeTrace().HitPos
+		local mins, maxs = zero, Vector(125, 125, 125)
+		local dir = Vector(1, 2, 1):GetNormalized()
+		local scanData = domain_GetAABBScanData(mins, maxs, dir)
+		local unit = (scanData.maxDepth - scanData.minDepth) / 4
+	
+		table.sort(scanData.edgeData, function(a, b)
+			return a.depthMax < b.depthMax
+		end)
+
+		-- 生成网格
+		local mat = CreateMaterial('phoenix_storms/wood_1', 'UnlitGeneric', {
+			['$basetexture'] = 'phoenix_storms/wood',
+			["$vertexalpha"] = 0,
+			["$vertexcolor"] = 1
+		})
+
+		local centers = {}
+		local meshs = {}
+		for i = 1, 3 do
+			local tris = domain_GetAABBSectionTriangles(scanData,scanData.minDepth + unit * i)
+			local obj = Mesh()
+			local verts = {}
+
+			for _, tri in ipairs(tris) do
+				for i = 0, 2 do
+					verts[#verts + 1] = {
+						pos = tri[i + 1] + pos,	
+						u = math.min(1, bit.band(i, 0x01)),
+						v = math.min(1, bit.band(i, 0x02))
+					}
+				end		
+			end
+			obj:BuildFromTriangles(verts)
+
+			meshs[#meshs + 1] = obj
+		end
+
+		local curTime = CurTime()
+		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_aabb_section', function()
+			render.SetMaterial(mat)
+			render.CullMode(MATERIAL_CULLMODE_CW)
+			for _, obj in pairs(meshs) do obj:Draw() end
+			render.CullMode(MATERIAL_CULLMODE_CCW)
+			for _, obj in pairs(meshs) do obj:Draw() end
+
+			render.DrawWireframeBox(pos, Angle(), mins, maxs, Color(255, 255, 0), true)
+			for _, center in pairs(centers) do
+				render.DrawWireframeSphere(center, 10, 8, 8)
+			end
+
+			if CurTime() - curTime > 20 then 
+				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_aabb_section')
+			end
+		end)
+
+		timer.Simple(30, function()
+			for _, obj in pairs(meshs) do obj:Destroy() end
+		end)
+	end)
+
+
+
+
 
 end
 

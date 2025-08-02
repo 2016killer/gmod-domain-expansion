@@ -2,9 +2,9 @@ include('shared.lua')
 
 function ENT:InitShells() 
     self.shells = {
-        [RYOIKI_STATE_EXPAND] = {material = 'domain/black'},
-        [RYOIKI_STATE_RUN] = {material = 'Models/effects/comball_sphere', fadeOutSpeed=5},
-        [RYOIKI_STATE_BREAK] = {material = 'domain/black'}
+        [DOMAIN_STATE_EXPAND] = {material = 'domain/black'},
+        [DOMAIN_STATE_RUN] = {material = 'Models/effects/comball_sphere', fadeOutSpeed=5},
+        [DOMAIN_STATE_BREAK] = {material = 'domain/black'}
     }
 end
 
@@ -107,13 +107,13 @@ end)
 
 function ENT:Run()
     local dt = FrameTime()
-    local shellEnt = self.shells[RYOIKI_STATE_RUN].ent
+    local shellEnt = self.shells[DOMAIN_STATE_RUN].ent
     if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
 end
 
 function ENT:Break()
     local dt = FrameTime()
-    local shellEnt = self.shells[RYOIKI_STATE_RUN].ent
+    local shellEnt = self.shells[DOMAIN_STATE_RUN].ent
     if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
 end
 

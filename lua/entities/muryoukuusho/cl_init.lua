@@ -2,9 +2,9 @@ include('shared.lua')
 
 function ENT:InitShells() 
     self.shells = {
-        [RYOIKI_STATE_EXPAND] = {material = 'domain/white'},
-        [RYOIKI_STATE_RUN] = {material = 'domain/black'},
-        [RYOIKI_STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
+        [DOMAIN_STATE_EXPAND] = {material = 'domain/white'},
+        [DOMAIN_STATE_RUN] = {material = 'domain/black'},
+        [DOMAIN_STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
     }
 end
 
@@ -15,7 +15,7 @@ local ballMat2 = Material('models/props_foliage/tree_deciduous_01a_trunk')
 
 function ENT:InitShellEnts()
     self.BaseClass.InitShellEnts(self)
-    local shell = self.shells[RYOIKI_STATE_RUN]
+    local shell = self.shells[DOMAIN_STATE_RUN]
     local ent = shell.ent
     ent.RenderOverride = function(self2)
         if !IsValid(self) then 

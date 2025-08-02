@@ -2,9 +2,9 @@ include('shared.lua')
 
 function ENT:InitShells()
     self.shells = {
-        [RYOIKI_STATE_EXPAND] = {material = 'domain/white'},
-        [RYOIKI_STATE_RUN] = {material = 'models/props_combine/portalball001_sheet'},
-        [RYOIKI_STATE_BREAK] = {material = 'domain/white'}
+        [DOMAIN_STATE_EXPAND] = {material = 'domain/white'},
+        [DOMAIN_STATE_RUN] = {material = 'models/props_combine/portalball001_sheet'},
+        [DOMAIN_STATE_BREAK] = {material = 'domain/white'}
     }
 end
 

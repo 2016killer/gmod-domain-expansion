@@ -7,9 +7,9 @@ function ENT:InitShells()
     -- fadeOutSpeed 淡出速度
     -- progress 进度
     self.shells = {
-        [RYOIKI_STATE_EXPAND] = {},
-        [RYOIKI_STATE_RUN] = {},
-        [RYOIKI_STATE_BREAK] = {}
+        [DOMAIN_STATE_EXPAND] = {},
+        [DOMAIN_STATE_RUN] = {},
+        [DOMAIN_STATE_BREAK] = {}
     }
 end
 
