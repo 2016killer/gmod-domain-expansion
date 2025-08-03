@@ -155,8 +155,9 @@ if CLIENT then
     	-- 获取长方体的切面扫描数据
 		-- 获取12条棱的深度区间
 		-- 可根据深度区间快速计算相交或交点
-		-- dir 扫描方向, 必须是单位向量
-
+		-- dir 扫描方向 (非零向量)
+		if dir:Dot(dir) < zerof then error('dir为零向量') end
+		dir = dir:GetNormalized()
 		// 获取12棱的位置、深度和全局深度极值
 		local dimensions = maxs - mins
 		local axes = {
@@ -240,7 +241,7 @@ if CLIENT then
 
 	function domain_3DPoints2ConvexPolygon(points, dir, u, v)
 		-- 点集转凸多边形 (三角形集合)
-		-- dir 方向
+		-- dir 方向 (单位向量)
 		-- u, v dir的正交基
 		if #points < 3 then return {} end
 
