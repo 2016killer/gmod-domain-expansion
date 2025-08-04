@@ -28,6 +28,7 @@ function ENT:UpdateClip(depth)
     self:SetRenderClipPlane(n, n:Dot(p))
     // self.n = n
     // self.p = n:Dot(p)
+    return n, p
 end
 
 function ENT:UpdateSection(depth)
@@ -48,8 +49,6 @@ function ENT:Think()
 
     self.currentDepth = self.currentDepth + self.speed * dt
     if self.currentDepth >= self.endDepth then self:Remove() end
-    // 裁剪特效
-    self:UpdateClip()
 
     // 粒子特效
     self.effectTimer = self.effectTimer + dt
@@ -64,16 +63,21 @@ function ENT:Think()
     return true
 end
 
-function ENT:InitModel(modelName, materialName, color, scale, matType)
+function ENT:InitModel(ent)
     -- 初始化渲染数据
-    modelName = modelName or 'models/props_c17/FurnitureCouch002a.mdl'
-    materialName = materialName or ''
-    color = color or white
-    scale = scale or 1
+    if !IsValid(ent) then return end
+    local pos = ent:GetPos()
+    local ang = ent:GetAngles()
 
-    self:SetModel(modelName)
-    self:SetMaterial(materialName)
-    self:SetModelScale(scale)
+    self:SetModel(ent:GetModel())
+    self:SetMaterial(ent:GetMaterial())
+    // self:SetColor(ent:GetColor())
+    self:SetModelScale(ent:GetModelScale())
+
+    self:SetPos(pos)
+    self:SetAngles(ang)
+    self:SetParent(ent)
+    if ent:IsRagdoll() then self:AddEffects(EF_BONEMERGE) end
 end
 
 function ENT:InitClip(dir, start, speed, mins, maxs, matType)
@@ -86,14 +90,14 @@ function ENT:InitClip(dir, start, speed, mins, maxs, matType)
     
     dir = (dir or -Vector(1, 1, 1)):GetNormalized()
     start = math.Clamp(start or 0, 0, 1)
-    // speed = math.max(speed or 100, 0)
+    speed = math.max(speed or 100, 0)
     if dir:Dot(dir) < zerof then error('dir为零向量') end
     if mins == nil then mins, maxs = self:GetModelBounds() end
 
     self.scanData = GetAABBScanData(mins, maxs, dir)
     self.currentDepth = start * (self.scanData.maxDepth - self.scanData.minDepth) + self.scanData.minDepth
     self.endDepth = self.scanData.maxDepth
-    self.speed = math.max(speed or (self.endDepth - self.currentDepth) * 2, 0)
+    self.speed = speed
 
     -- 截面 (用于采样粒子坐标)
     self.currentSection = {}
@@ -123,7 +127,6 @@ function ENT:SetEffectData(matType)
     end
     self.effectData = effectDataTable['Metal']
 end
-
 
 function ENT:ParticleEffect(depth)
     local emitter = self.emitter
@@ -166,6 +169,10 @@ function ENT:ParticleEffect(depth)
     end
 end
 
+function ENT:SetDuration(duration)
+    self.speed = (self.endDepth - self.currentDepth) / duration
+end
+
 function ENT:SoundEffect()
     local sound = self.effectData.sound
 
@@ -176,11 +183,23 @@ function ENT:OnRemove()
     if self.emitter then self.emitter:Finish() end
 end
 
+function ENT:SetVel(vec)
+    self.vel = vec
+end
+
 function ENT:Draw() 
-    -- source引擎优化好, 经得起这种操作
+    -- source引擎优化好, 经得起这些操作
+    if isvector(self.vel) then
+        self:SetPos(self:GetPos() + self.vel * FrameTime())
+    end
+
+    
+
     local matrix = self:GetWorldTransformMatrix()
     local mat = self.effectData.mat
-    local n = self:LocalToWorld(self.scanData.dir) - self:GetPos()
+    local n, _ = self:UpdateClip() // 裁剪特效
+
+
     
     matrix:SetTranslation(matrix:GetTranslation() + n * (self.currentDepth + 0.5))
 
@@ -211,18 +230,7 @@ function ENT:Draw()
     render.SetStencilEnable(false)
 end
 
-concommand.Add('domain_debug_fkm_death', function(ply)
-    local tr = ply:GetEyeTrace()
-    local ent = tr.Entity
 
-
-    local ent = ents.CreateClientside('fkm_death')
-    ent:SetPos(tr.HitPos + tr.HitNormal * 100)
-    ent:InitModel('models/props_wasteland/cargo_container01.mdl')
-    ent:InitClip(nil, nil, nil, nil, nil, 'flesh')
-    ent:Spawn()
-    // ent.bornTime = nil
-end)
 
 concommand.Add('domain_clear_fkm_death', function()
     for _, ent in ipairs(ents.FindByClass('fkm_death')) do
