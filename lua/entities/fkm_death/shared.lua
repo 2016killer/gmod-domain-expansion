@@ -3,7 +3,7 @@ ENT.Base = 'base_gmodentity'
 
 ENT.ClassName = 'fkm_death'
 ENT.PrintName = 'Fkm Death' 
-ENT.Category = 'domain'
+ENT.Category = 'Domain'
 ENT.Spawnable = false
 
 -- 实体的fkm死亡逻辑
@@ -41,7 +41,7 @@ if SERVER then
         -- 移除逻辑
         for i = #fkmDieQueue, 1, -1 do
             local data = fkmDieQueue[i]
-            if !IsValid(data.ent) then
+            if not IsValid(data.ent) then
                 table.remove(fkmDieQueue, i)
             elseif data.dietime <= CurTime() then
                 data.ent:Remove()
@@ -52,7 +52,7 @@ if SERVER then
 
     concommand.Add('domain_debug_fkm_die', function(ply, cmd, args)
         local ent = ply:GetEyeTrace().Entity
-        if !IsValid(ent) then return end
+        if not IsValid(ent) then return end
         domain_fkm_die(ent, 1, true)
     end)
 end

@@ -22,7 +22,7 @@ function ENT:InitShellEnts()
         ent:SetPos(self:GetPos())
         ent:SetAngles(Angle(-90, 0, 0))
         ent.RenderOverride = function(self2)
-            if !IsValid(self) then 
+            if not IsValid(self) then 
                 self2:Remove()
                 return
             end

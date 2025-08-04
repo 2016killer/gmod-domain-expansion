@@ -65,7 +65,7 @@ end
 
 function ENT:InitModel(ent)
     -- 初始化渲染数据
-    if !IsValid(ent) then return end
+    if not IsValid(ent) then return end
     local pos = ent:GetPos()
     local ang = ent:GetAngles()
 

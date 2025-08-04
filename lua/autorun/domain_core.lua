@@ -171,7 +171,7 @@ if CLIENT then
 		for i = 0, 7 do
 			local ref = mins
 			for j = 0, 2 do
-				if bit.band(i, bit.lshift(1, j)) != 0 then
+				if bit.band(i, bit.lshift(1, j)) ~= 0 then
 					ref = ref + axes[j + 1]
 				end
 			end
@@ -200,8 +200,8 @@ if CLIENT then
 		for i = 1, 3 do
 			for j = 0, 3 do
 				local ref = mins
-				if bit.band(j, 0x01) != 0 then ref = ref + axes[1] end
-				if bit.band(j, 0x02) != 0 then ref = ref + axes[2] end
+				if bit.band(j, 0x01) ~= 0 then ref = ref + axes[1] end
+				if bit.band(j, 0x02) ~= 0 then ref = ref + axes[2] end
 
 				local lineAxis = axes[3]
 				local linePos1 = ref
@@ -289,7 +289,7 @@ if CLIENT then
 			local bx, by = b.x - ox, b.y - oy
 			local cross = ax * by - ay * bx
 
-			if cross != 0 then
+			if cross ~= 0 then
 				return cross > 0
 			else
 				-- 共线时距离近的优先
@@ -511,31 +511,30 @@ if CLIENT then
 end
 
 
-if SERVER then
-    util.AddNetworkString('domain_expand')
+local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+function domain_ExpandCondition(ply)
+	if not ply:Alive() then return false end
+	if ply:InVehicle() then return false end
+	
+	local armor_condition = dm_armor_condition:GetFloat()
+	local health_condition = dm_health_condition:GetFloat()
 
-    net.Receive('domain_expand', function(len, ply)
-        print(ply)
-        // local center = ply:GetPos()
-        // local entity = ents.Create('fukuma')
-        // entity:SetPos(center)
-        // entity:SetAngles(Angle(0, 0, 0))
-        // entity:Spawn()
-        // entity:SetOwner(ply)
-        // print(entity:GetOwner())
-        // print(entity:GetNWEntity('owner'))
-        // return self:GetNWEntity('owner')
-    end)
+	if ply:Armor() <= armor_condition then
+		if CLIENT then ply:EmitSound('TriggerSuperArmor.DoneCharging') end
+		return false
+	end
+	if ply:Health() <= health_condition then
+		if CLIENT then ply:EmitSound('WallHealth.Deny') end
+		return false
+	end
 
-
-	concommand.Add('domain_debug_material_type', function(ply)
-		local tr = ply:GetEyeTrace()
-		local ent = tr.Entity
-		local phy = ent:GetPhysicsObject()
-		print(phy:GetMaterial())
-	end)
-
+	return true
 end
 
+
+function domain_Threat(ply)
+
+end
 
 

@@ -3,6 +3,6 @@ ENT.Base = 'domain_base'
 
 ENT.ClassName = 'domain_health'
 ENT.PrintName = 'Domain Health'
-ENT.Category = 'domain'
+ENT.Category = 'Domain'
 ENT.Spawnable = true
 

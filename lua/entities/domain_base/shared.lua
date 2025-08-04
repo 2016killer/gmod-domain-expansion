@@ -3,7 +3,7 @@ ENT.Base = 'base_gmodentity'
 
 ENT.ClassName = 'domain_base'
 ENT.PrintName = 'Domain Base'
-ENT.Category = 'domain'
+ENT.Category = 'Domain'
 ENT.Spawnable = true
 
 

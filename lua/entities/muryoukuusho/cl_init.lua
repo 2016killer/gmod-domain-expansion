@@ -18,7 +18,7 @@ function ENT:InitShellEnts()
     local shell = self.shells[DOMAIN_STATE_RUN]
     local ent = shell.ent
     ent.RenderOverride = function(self2)
-        if !IsValid(self) then 
+        if not IsValid(self) then 
             self2:Remove()
             return
         end

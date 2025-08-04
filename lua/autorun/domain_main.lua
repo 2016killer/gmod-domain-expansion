@@ -1,12 +1,13 @@
 if CLIENT then
+	-- 测量
     local measureState = false
 	local measureResult = 0
 
 	local measureEnts // 特效模型
 	local function getMeasureEnts()
-		if !istable(measureEnts) then measureEnts = {} end
+		if not istable(measureEnts) then measureEnts = {} end
 		for i = 1, 2 do
-			if !IsValid(measureEnts[i]) then 
+			if not IsValid(measureEnts[i]) then 
 				measureEnts[i] = ClientsideModel('models/dav0r/hoverball.mdl')
 				measureEnts[i]:SetMaterial('Models/effects/vol_light001') 
 			end
@@ -14,18 +15,20 @@ if CLIENT then
 		return measureEnts
 	end
 
+	local dm_sensitivity = CreateClientConVar('dm_sensitivity', '500', true, false)
+	hook.Add('Think', 'domain_measure', function()
+		-- 测量逻辑
+		if measureState then 
+			local dt = FrameTime() / game.GetTimeScale()
+			measureResult = measureResult + dt * dm_sensitivity:GetFloat()
+		else
+			measureResult = 0 
+		end
+	end)
 
 	hook.Add('PostDrawOpaqueRenderables', 'domain_measure', function()
-        -- 测量特效
-		local dt = FrameTime() / game.GetTimeScale()
-		local measureSensitivity = GetConVar('domain_measure_sensitivity'):GetFloat()
-		if measureState then
-			measureResult = measureResult + dt * measureSensitivity
-		else
-			measureResult = math.max(measureResult - dt * measureSensitivity * 3, 0) 
-		end
-
-		if measureResult == 0 then return end
+        -- 特效
+		if not measureState then return end
 
 		local measureEnts = getMeasureEnts()
 
@@ -89,22 +92,53 @@ if CLIENT then
 		render.SuppressEngineLighting(false)
 	end)
 	
-	concommand.Add('+domain_expand', function(ply, args)
+	
+	concommand.Add('+domain_run', function(ply, args)
+		// if ply:GetNWBool('fusing') then 
+		if not domain_ExpandCondition(ply) then return end
+		// hook.Run('domain_run', ply, args[1])
+			
+
+
+		
 		measureState = true
-		// hook.Run('domain_measure', ply, args[1])
-		// local ammo = owner:GetAmmoCount('EKATANA')
-		// if ammo < 1 then owner:EmitSound(Sound('noEnergy'),100,100) return end
-		// if !VManip then return end
+		// if not VManip then return end
 		// if VManip:PlayAnim("exedrop") then exedrop = true net.Start('exedrop') owner:EmitSound(Sound('Pistol.ItemPickupExtend')) net.WriteBool(true) net.SendToServer()  end
 	end)
 
-	concommand.Add('-domain_expand', function(ply)
+	concommand.Add('-domain_run', function(ply)
 		measureState = false
 		// net.Start('domain_expand')
 		// net.SendToServer()
 	end)
 
-
-
+	concommand.Add('domain_break', function(ply, args)
+		measureState = false
+	end)
 end
 
+if SERVER then
+    util.AddNetworkString('domain_expand')
+
+    net.Receive('domain_expand', function(len, ply)
+        print(ply)
+        // local center = ply:GetPos()
+        // local entity = ents.Create('fukuma')
+        // entity:SetPos(center)
+        // entity:SetAngles(Angle(0, 0, 0))
+        // entity:Spawn()
+        // entity:SetOwner(ply)
+        // print(entity:GetOwner())
+        // print(entity:GetNWEntity('owner'))
+        // return self:GetNWEntity('owner')
+    end)
+
+
+	concommand.Add('domain_debug_material_type', function(ply)
+		local tr = ply:GetEyeTrace()
+		local ent = tr.Entity
+		local phy = ent:GetPhysicsObject()
+		print(phy:GetMaterial())
+	end)
+
+end
