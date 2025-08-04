@@ -1,7 +1,10 @@
 if CLIENT then
+	local math = math
+	local bit = bit
+	local table = table
     local EMITTER = FindMetaTable('CLuaEmitter')
 	local zero = Vector()
-	local zerof = 0.0000152587890625
+	local zerof = 0.000030517578125
 
 	local function IsZero(v) return v.x == 0 and v.y == 0 and v.z == 0 end
 
@@ -151,6 +154,32 @@ if CLIENT then
 		emitter:Finish()
 	end)
 
+
+
+
+
+	function domain_GetAABBVertexes(mins, maxs)
+    	-- 获取长方体顶点
+		local dimensions = maxs - mins
+		local axes = {
+			Vector(0, 0, dimensions.z), 
+			Vector(0, dimensions.y, 0), 
+			Vector(dimensions.x, 0, 0)
+		}
+
+		local verts = {}
+		for i = 0, 7 do
+			local ref = mins
+			for j = 0, 2 do
+				if bit.band(i, bit.lshift(1, j)) != 0 then
+					ref = ref + axes[j + 1]
+				end
+			end
+			verts[#verts + 1] = ref
+		end
+		return verts
+	end
+
 	function domain_GetAABBScanData(mins, maxs, dir)
     	-- 获取长方体的切面扫描数据
 		-- 获取12条棱的深度区间
@@ -215,7 +244,9 @@ if CLIENT then
 			maxDepth = maxDepth,
 			dir = dir,
 			u = u,
-			v = v
+			v = v,
+			mins = Vector(mins),
+			maxs = Vector(maxs)
 		}
 	end
 
@@ -239,66 +270,142 @@ if CLIENT then
 		return iPoints
 	end
 
-	function domain_3DPoints2ConvexPolygon(points, dir, u, v)
-		-- 点集转凸多边形 (三角形集合)
-		-- dir 方向 (单位向量)
-		-- u, v dir的正交基
-		if #points < 3 then return {} end
+	function domain_PASort(points, origin)
+		-- 极角排序
+		if #points < 2 then return end
 
-		if u == nil then
-			local ref = Vector(1, 0, 0)
-			if math.abs(dir:Dot(ref)) + zerof > 1 then ref = Vector(0, 1, 0) end
-
-			u = dir:Cross(ref):GetNormalized()
-			v = dir:Cross(u):GetNormalized()
+		if origin == nil then
+			origin = points[1]
+			for _, p in ipairs(points) do
+				if p.y < origin.y or (p.y == origin.y and p.x < origin.x) then
+					origin = p
+				end
+			end
 		end
 
-		-- 以均值中心逆时针排序点
-		local centroid = Vector(0, 0, 0)
-		local points2D = {}
-		for _, p in ipairs(points) do
-			centroid = centroid + p
-			table.insert(points2D, {
+		local ox, oy = origin.x, origin.y
+		table.sort(points, function(a, b)
+			local ax, ay = a.x - ox, a.y - oy
+			local bx, by = b.x - ox, b.y - oy
+			local cross = ax * by - ay * bx
+
+			if cross != 0 then
+				return cross > 0
+			else
+				-- 共线时距离近的优先
+				local distA = ax * ax + ay * ay
+				local distB = bx * bx + by * by
+				return distA < distB
+			end
+		end)
+	end
+
+	local PASort = domain_PASort
+	function domain_3DPoints2Poly(points3D, u, v)
+		-- 3D点集转多边形
+		-- u, v 平面的轴
+
+		if #points3D < 3 then return {} end
+
+		-- 转到平面坐标
+		local points = {}
+		local center = {x = 0, y = 0}
+		for _, p in ipairs(points3D) do
+			local p2D = {
 				x = p:Dot(u),
 				y = p:Dot(v),
 				orig = p -- 保留原3D点
-			})
+			}
+			center.x, center.y = center.x + p2D.x, center.y + p2D.y
+			points[#points + 1] = p2D
 		end
-		centroid = centroid / #points
-		local cx, cy = centroid:Dot(u), centroid:Dot(v)
-		
-		// 排序
-		table.sort(points2D, function(a, b)
-			local angleA = math.atan2(a.y - cy, a.x - cx)
-			local angleB = math.atan2(b.y - cy, b.x - cx)
-			return angleA < angleB
-		end)
-		
-		local sortedPoints = {}
-		for _, p in ipairs(points2D) do table.insert(sortedPoints, p.orig) end
+		center.x, center.y = center.x / #points, center.y / #points
 
-	
-		-- 生成三角形集合
+		-- 极角排序
+		PASort(points, center)
+
+		-- 使用3D点生成三角形集合
 		local tris = {}
-		for i = 2, #sortedPoints - 1 do
-			table.insert(tris, {
-				sortedPoints[1],
-				sortedPoints[i],
-				sortedPoints[i + 1]
-			})
+		for i = 2, #points - 1 do
+			tris[#tris + 1] = {
+				points[1].orig,
+				points[i].orig,
+				points[i + 1].orig
+			}
 		end
+
 		return tris
 	end
 
+	function domain_3DPointsGrahamScan(points3D, u, v)
+		-- 凸包构建
+		-- 将对原数组排序
+		if #points3D < 3 then return {} end
 
-	function domain_GetAABBSectionTriangles(scanData, depth)
-		local iPoints = domain_FastAABBSection(scanData, depth)
+		-- 转到平面坐标
+		local points = {}
+		for _, p in ipairs(points3D) do
+			local p2D = {
+				x = p:Dot(u),
+				y = p:Dot(v),
+			}
+			points[#points + 1] = p2D
+		end
+	
+		PASort(points)
 
-		if #iPoints < 3 then return {} end
-		-- 剖分三角形
-		return domain_3DPoints2ConvexPolygon(iPoints, scanData.dir, scanData.u, scanData.v)
+		// 筛选凸包点
+		local stack = {points[1], points[2]}
+		for i = 3, #points do
+			local p = points[i]
+			while #stack >= 2 do
+				local topIdx = #stack
+				local a = stack[topIdx - 1]  -- 栈顶前一点
+				local b = stack[topIdx]      -- 栈顶点
+			
+				local abx, aby = b.x - a.x, b.y - a.y
+				local apx, apy = p.x - a.x, p.y - a.y
+	
+				local cross = abx * apy - aby * apx
+				if cross <= 0 then
+					table.remove(stack)  
+				else
+					break
+				end
+			end
+			table.insert(stack, p) 
+		end
+
+		-- 使用3D点生成三角形集合
+		local tris = {}
+		for i = 2, #stack - 1 do
+			tris[#tris + 1] = {
+				stack[1].x * u + stack[1].y * v,
+				stack[i].x * u + stack[i].y * v,
+				stack[i + 1].x * u + stack[i + 1].y * v
+			}
+		end
+
+		return tris
 	end
 
+	function domain_SimpleMesh(tris)
+		-- 生成简易网格 (固定uv)
+		local obj = Mesh()
+		local verts = {}
+		for _, tri in ipairs(tris) do
+			for i = 0, 2 do
+				verts[#verts + 1] = {
+					pos = tri[i + 1],	
+					u = math.min(1, bit.band(i, 0x01)),
+					v = math.min(1, bit.band(i, 0x02))
+				}
+			end		
+		end
+		obj:BuildFromTriangles(verts)
+
+		return obj
+	end
 
 	concommand.Add('domain_debug_aabb_section', function(ply)
 		-- 正六面体对角线方向4等分
@@ -306,41 +413,37 @@ if CLIENT then
 		local mins, maxs = zero, Vector(125, 125, 125)
 		local dir = Vector(1, 2, 1):GetNormalized()
 		local scanData = domain_GetAABBScanData(mins, maxs, dir)
-		local unit = (scanData.maxDepth - scanData.minDepth) / 4
+		local unit = (scanData.maxDepth - scanData.minDepth) / 10
 	
 		-- 生成网格
 		local meshs = {}
-		for i = 1, 3 do
-			local tris = domain_GetAABBSectionTriangles(scanData, scanData.minDepth + unit * i)
-			local obj = Mesh()
-			local verts = {}
-
-			for _, tri in ipairs(tris) do
-				for i = 0, 2 do
-					verts[#verts + 1] = {
-						pos = tri[i + 1] + pos,	
-						u = math.min(1, bit.band(i, 0x01)),
-						v = math.min(1, bit.band(i, 0x02))
-					}
-				end		
-			end
-			obj:BuildFromTriangles(verts)
-
+		for i = 1, 9 do
+			local obj = domain_SimpleMesh(
+				domain_3DPoints2Poly(
+					domain_FastAABBSection(scanData, scanData.minDepth + unit * i), 
+					scanData.u, 
+					scanData.v)
+			)
+	
 			meshs[#meshs + 1] = obj
 		end
 
 		local curTime = CurTime()
-		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_aabb_section', function()
-			render.SetColorMaterial()
-			render.CullMode(MATERIAL_CULLMODE_CW)
-			for _, obj in pairs(meshs) do obj:Draw() end
-			render.CullMode(MATERIAL_CULLMODE_CCW)
-			for _, obj in pairs(meshs) do obj:Draw() end
+		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_draw', function()
+			local matrix = Matrix()
+			matrix:SetTranslation(pos)
+			cam.PushModelMatrix(matrix)
+				render.SetColorMaterial()
+				render.CullMode(MATERIAL_CULLMODE_CW)
+				for _, obj in pairs(meshs) do obj:Draw() end
+				render.CullMode(MATERIAL_CULLMODE_CCW)
+				for _, obj in pairs(meshs) do obj:Draw() end
 
-			render.DrawWireframeBox(pos, Angle(), mins, maxs, Color(255, 255, 0), true)
+				render.DrawWireframeBox(zero, Angle(), mins, maxs, Color(255, 255, 0), true)
+			cam.PopModelMatrix()
 
 			if CurTime() - curTime > 20 then 
-				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_aabb_section')
+				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_draw')
 			end
 		end)
 
@@ -349,6 +452,58 @@ if CLIENT then
 		end)
 	end)
 
+	concommand.Add('domain_debug_aabb_bounds2d', function(ply)
+		-- 正六面体对角线方向4等分
+		local pos = LocalPlayer():GetEyeTrace().HitPos
+		local mins, maxs = zero, Vector(125, 125, 125)
+		local dir = Vector(1, 2, 1):GetNormalized()
+		local scanData = domain_GetAABBScanData(mins, maxs, dir)
+
+		local tris = domain_3DPointsGrahamScan(
+			domain_GetAABBVertexes(mins, maxs), 
+			scanData.u, 
+			scanData.v
+		)
+
+		-- 生成网格
+		local obj = domain_SimpleMesh(tris)
+
+		local curTime = CurTime()
+		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_draw', function()
+			local matrix = Matrix()
+			matrix:SetTranslation(pos)
+			cam.PushModelMatrix(matrix)
+				render.SetColorMaterial()
+				render.CullMode(MATERIAL_CULLMODE_CW)
+				obj:Draw()
+				render.CullMode(MATERIAL_CULLMODE_CCW)
+				obj:Draw()
+				render.DrawWireframeBox(zero, Angle(), mins, maxs, Color(255, 255, 0), true)
+			cam.PopModelMatrix()
+
+			if CurTime() - curTime > 20 then 
+				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_draw')
+			end
+		end)
+
+		timer.Simple(30, function() obj:Destroy() end)
+
+	end)
+
+	concommand.Add('domain_debug_draw', function(ply, cmd, argv)
+		local mat = Material(argv[1])
+		local curTime = CurTime()
+
+		hook.Add('HUDPaint', 'domain_debug_draw', function()
+			surface.SetDrawColor(255, 255, 255, 255)
+			surface.SetMaterial(mat)
+			surface.DrawTexturedRect(0, 0, 512, 512)
+
+			if CurTime() - curTime > 5 then 
+				hook.Remove('HUDPaint', 'domain_debug_draw')
+			end
+		end)
+	end)
 
 
 
@@ -371,6 +526,15 @@ if SERVER then
         // print(entity:GetNWEntity('owner'))
         // return self:GetNWEntity('owner')
     end)
+
+
+	concommand.Add('domain_debug_material_type', function(ply)
+		local tr = ply:GetEyeTrace()
+		local ent = tr.Entity
+		local phy = ent:GetPhysicsObject()
+		print(phy:GetMaterial())
+	end)
+
 end
 
 

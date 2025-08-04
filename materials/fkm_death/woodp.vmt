@@ -1,0 +1,5 @@
+"UnlitGeneric"
+{
+    "$basetexture" "effects/fleck_wood1" 
+    "$translucent" "1" 
+}

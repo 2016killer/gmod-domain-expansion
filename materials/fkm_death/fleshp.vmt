@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+    "$basetexture" "fkm_death/vtf/fleshp" 
+    "$translucent" "1" 
+    // "$additive" "1"     
+    // "$nocull" "1"   
+    // "$alphatest" "1"  
+}

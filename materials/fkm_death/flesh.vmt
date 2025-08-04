@@ -1,0 +1,20 @@
+"VertexLitGeneric"
+{
+    "$basetexture" "models/flesh" 
+    "$surfaceprop" "flesh"        
+
+    "$model" 1                     
+    "$nocull" 1                    
+
+    "$ambient" "[1 1 1]"           
+    "$diffuse" 1.0                 
+    "$specular" 1.0                
+    "$shininess" 50                
+    "$envmap" "env_cubemap"       
+    "$envmapmask" "models/flesh"   
+    "$envmapintensity" 1.2         
+
+    "$emissive" "[0.1 0.05 0.05]"  
+    "$emissiveblend" 1             
+}
+

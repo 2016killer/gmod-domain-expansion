@@ -6,11 +6,17 @@ ENT.PrintName = 'Domain Base'
 ENT.Category = 'domain'
 ENT.Spawnable = true
 
+
+
 DOMAIN_STATE_IDLE = 1
 DOMAIN_STATE_EXPAND = 2
 DOMAIN_STATE_RUN = 3
 DOMAIN_STATE_BREAK = 4
 
+local STATE_IDLE = DOMAIN_STATE_IDLE
+local STATE_EXPAND = DOMAIN_STATE_EXPAND
+local STATE_RUN = DOMAIN_STATE_RUN
+local STATE_BREAK = DOMAIN_STATE_BREAK
 
 function ENT:SetupDataTables()
     self:SetHealth(100)
@@ -28,7 +34,7 @@ function ENT:Initialize()
     end
     self:SetArmor(100)
     self:SetOwner(self)
-    self:SetState(DOMAIN_STATE_EXPAND)
+    self:SetState(STATE_EXPAND)
     self:SetTRadius(500)
 
     self.radius = 0
@@ -46,15 +52,15 @@ function ENT:Think()
     if SERVER then
         -- 生命周期切换
         if self:BreakCondition() then 
-            self:SetState(DOMAIN_STATE_BREAK) 
+            self:SetState(STATE_BREAK) 
         end
-        if state == DOMAIN_STATE_EXPAND and self.radius >= tRadius then 
-            self:SetState(DOMAIN_STATE_RUN)
+        if state == STATE_EXPAND and self.radius >= tRadius then 
+            self:SetState(STATE_RUN)
         end
     end
 
     -- 动作
-    if state == DOMAIN_STATE_EXPAND then
+    if state == STATE_EXPAND then
         self.radius = math.Clamp(self.radius + self.expandSpeed * dt, 
             0, 
             tRadius) 
@@ -63,7 +69,7 @@ function ENT:Think()
         local owner = self:GetOwner()
         local center = owner:GetPos()
 
-    elseif state == DOMAIN_STATE_RUN then
+    elseif state == STATE_RUN then
         local owner = self:GetOwner()
         local center = owner:GetPos()
 
@@ -80,7 +86,7 @@ function ENT:Think()
         end
 
         self:Run()
-    elseif state == DOMAIN_STATE_BREAK then 
+    elseif state == STATE_BREAK then 
         self.radius = math.max(self.radius - 1000 * dt, 0)
         self:SetScale(self.radius * 0.166)
         if SERVER and self.radius <= 0 then self:Remove() end
