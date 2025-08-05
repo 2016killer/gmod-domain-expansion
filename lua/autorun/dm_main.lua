@@ -94,16 +94,17 @@ if CLIENT then
 	
 	
 	concommand.Add('+domain_run', function(ply, args)
-		// if ply:GetNWBool('fusing') then 
-		if not domain_ExpandCondition(ply) then return end
-		// hook.Run('domain_run', ply, args[1])
-			
-
+		if not domain_ExpandCondition(ply, args[1]) then return end
 
 		
 		measureState = true
 		// if not VManip then return end
-		// if VManip:PlayAnim("exedrop") then exedrop = true net.Start('exedrop') owner:EmitSound(Sound('Pistol.ItemPickupExtend')) net.WriteBool(true) net.SendToServer()  end
+		// if VManip:PlayAnim("exedrop") then 
+		// 	exedrop = true net.Start('exedrop') 
+		// 	owner:EmitSound(Sound('Pistol.ItemPickupExtend')) 
+		// 	net.WriteBool(true) 
+		// 	net.SendToServer()  
+		// end
 	end)
 
 	concommand.Add('-domain_run', function(ply)

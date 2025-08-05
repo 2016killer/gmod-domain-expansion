@@ -2,7 +2,7 @@ include('shared.lua')
 
 function ENT:InitShells() 
     self.shells = {
-        [DOMAIN_STATE_EXPAND] = {material = 'domain/black'},
+        [DOMAIN_STATE_BORN] = {material = 'domain/black'},
         [DOMAIN_STATE_RUN] = {material = 'Models/effects/comball_sphere', fadeOutSpeed=5},
         [DOMAIN_STATE_BREAK] = {material = 'domain/black'}
     }
@@ -35,7 +35,8 @@ local function LaserStorm(emitter, mat, radius, center, width, unitLen, num, die
     end
 end
 
-function ENT:Impact(owner, dt)
+function ENT:Run(dt)
+    if not self:GetExecute() then return end
     local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
     local period = 0.05
@@ -48,27 +49,18 @@ function ENT:Impact(owner, dt)
         local num = math.min(30, math.max(1, math.floor(radius / 10)))
         local dieTime = 0.1
 
-        LaserStorm(
-            emitter, 
-            'fkm/laserblack',
-            radius, 
-            center, 
-            30,
-            unitLen, 
-            num, 
-            dieTime
-        )
-
-        LaserStorm(
-            emitter, 
-            'fkm/laserblack2',
-            radius, 
-            center, 
-            30,
-            unitLen, 
-            num, 
-            dieTime
-        )
+        for _, mat in pairs({'fkm/laserblack', 'fkm/laserblack2'}) do
+            LaserStorm(
+                emitter, 
+                mat,
+                radius, 
+                center, 
+                30,
+                unitLen, 
+                num, 
+                dieTime
+            )
+        end
 
         if self:Cover(LocalPlayer()) then
             self.soundID = LocalPlayer():StartLoopingSound('fkm/laserstorm.wav')
@@ -76,12 +68,13 @@ function ENT:Impact(owner, dt)
             if self.soundID then LocalPlayer():StopLoopingSound(self.soundID) end
         end
     end
-
     self.emitter = emitter
     self.effectTimer = timer
+
+
+    local shellEnt = self.shells[DOMAIN_STATE_RUN].ent
+    if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
 end
-
-
 
 concommand.Add('fkm_debug_laser_storm', function(ply)
     local tr = ply:GetEyeTrace()
@@ -104,14 +97,7 @@ concommand.Add('fkm_debug_laser_storm', function(ply)
     emitter:Finish()
 end)
 
-
-function ENT:Run()
-    local dt = FrameTime()
-    local shellEnt = self.shells[DOMAIN_STATE_RUN].ent
-    if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
-end
-
-function ENT:Break()
+function ENT:Break(dt)
     local dt = FrameTime()
     local shellEnt = self.shells[DOMAIN_STATE_RUN].ent
     if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end

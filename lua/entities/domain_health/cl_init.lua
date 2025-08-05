@@ -2,14 +2,19 @@ include('shared.lua')
 
 function ENT:InitShells()
     self.shells = {
-        [DOMAIN_STATE_EXPAND] = {material = 'domain/white'},
+        [DOMAIN_STATE_BORN] = {material = 'domain/white'},
         [DOMAIN_STATE_RUN] = {material = 'models/props_combine/portalball001_sheet'},
         [DOMAIN_STATE_BREAK] = {material = 'domain/white'}
     }
 end
 
+function ENT:InitShellEnts()
+    self.BaseClass.InitShellEnts(self)
+    self.shells[DOMAIN_STATE_RUN].ent:SetAngles(Angle(-90, 0, 0))
+end
 
-function ENT:Impact(owner, dt)
+
+function ENT:Run(dt)
     local timer = self.effectTimer or 0
     local period = 1
     timer = timer + dt

@@ -2,7 +2,7 @@ include('shared.lua')
 
 function ENT:InitShells() 
     self.shells = {
-        [DOMAIN_STATE_EXPAND] = {material = 'domain/white'},
+        [DOMAIN_STATE_BORN] = {material = 'domain/white'},
         [DOMAIN_STATE_RUN] = {material = 'domain/black'},
         [DOMAIN_STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
     }
@@ -92,7 +92,8 @@ function ENT:InitShellEnts()
     end
 end
 
-function ENT:Impact(owner, dt)
+function ENT:Run(dt)
+    if not self:GetExecute() then return end
     local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
     local period = 0.5
@@ -101,7 +102,7 @@ function ENT:Impact(owner, dt)
         timer = timer - period
         local radius = self.radius
         local center = self:GetPos()
-        local num = math.min(500, math.max(1, math.floor(radius * 0.25)))
+        local num = math.min(200, math.max(1, math.floor(radius * 0.25)))
         local dieTime = 1
 
         emitter:domain_SphereSnow(

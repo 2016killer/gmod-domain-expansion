@@ -490,8 +490,8 @@ if CLIENT then
 
 	end)
 
-	concommand.Add('domain_debug_draw', function(ply, cmd, argv)
-		local mat = Material(argv[1])
+	concommand.Add('domain_debug_draw', function(ply, cmd, args)
+		local mat = Material(args[1])
 		local curTime = CurTime()
 
 		hook.Add('HUDPaint', 'domain_debug_draw', function()
@@ -505,15 +505,12 @@ if CLIENT then
 		end)
 	end)
 
-
-
-
 end
 
 
 local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-function domain_ExpandCondition(ply)
+function domain_ExpandCondition(ply, dotype)
 	if not ply:Alive() then return false end
 	if ply:InVehicle() then return false end
 	
@@ -529,12 +526,18 @@ function domain_ExpandCondition(ply)
 		return false
 	end
 
-	return true
+	return not hook.Run('PreDomainExpand', ply, dotype)
 end
 
-
+local threatNextTime = 0
 function domain_Threat(ply)
-
+	local curTime = CurTime()
+	if curTime > threatNextTime then
+		threatNextTime = curTime + 1
+		net.Start('domain_threat')
+		net.WriteEntity(ply:GetPos())
+		net.SendToServer()
+	end
 end
 
 

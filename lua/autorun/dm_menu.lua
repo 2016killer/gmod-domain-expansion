@@ -1,9 +1,6 @@
 
 CreateConVar('dm_armor_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_health_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-
-CreateConVar('dm_open_k', '1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-CreateConVar('dm_close_k', '1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_expand_speed', '500', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_threat', '1', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
@@ -22,11 +19,6 @@ if CLIENT then
 				panel:Help('---------'..phrase('dm.server')..'---------')
 				panel:NumSlider(phrase('dm.var.armor_condition'), 'dm_armor_condition', 0, 5000, 0)
 				panel:NumSlider(phrase('dm.var.health_condition'), 'dm_health_condition', 0, 5000, 0)
-
-				panel:NumSlider(phrase('dm.var.open_k'), 'dm_open_k', 1, 20, 3)
-				panel:Help(phrase('dm.help.open_k'))
-				panel:NumSlider(phrase('dm.var.close_k'), 'dm_close_k', 1, 20, 3)
-				panel:Help(phrase('dm.help.close_k'))
 				panel:NumSlider(phrase('dm.var.expand_speed'), 'dm_expand_speed', 50, 2000, 3)
 				panel:CheckBox(phrase('dm.var.threat'), 'dm_threat')
 				panel:Help('---------'..phrase('dm.client')..'---------')

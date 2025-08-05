@@ -7,7 +7,7 @@ function ENT:InitShells()
     -- fadeOutSpeed 淡出速度
     -- progress 进度
     self.shells = {
-        [DOMAIN_STATE_EXPAND] = {},
+        [DOMAIN_STATE_BORN] = {},
         [DOMAIN_STATE_RUN] = {},
         [DOMAIN_STATE_BREAK] = {}
     }
@@ -16,14 +16,14 @@ end
 function ENT:InitShellEnts()
     -- (特性) 外壳渲染
     for state, shell in pairs(self.shells) do
+        if IsValid(shell.ent) then continue end
         local ent = ClientsideModel('models/dav0r/hoverball.mdl')
         local material = isstring(shell.material) and shell.material or 'domain/black'
+        local domain = self
         ent:SetMaterial(material)
-        ent:SetPos(self:GetPos())
-        ent:SetAngles(Angle(-90, 0, 0))
-        ent.RenderOverride = function(self2)
-            if not IsValid(self) then 
-                self2:Remove()
+        ent.RenderOverride = function(self)
+            if not IsValid(domain) then 
+                self:Remove()
                 return
             end
             
@@ -32,9 +32,9 @@ function ENT:InitShellEnts()
             
             local oldBlend = render.GetBlend()
             render.SetBlend(progress)
-            self2:DrawModel()
+            self:DrawModel()
             render.CullMode(MATERIAL_CULLMODE_CW)
-            self2:DrawModel()
+            self:DrawModel()
             render.CullMode(MATERIAL_CULLMODE_CCW)
             render.SetBlend(oldBlend)
         end
@@ -71,25 +71,17 @@ function ENT:DrawCustomShell(state, shell, progress)
     -- (特性) 自定义外壳渲染
 end
 
-function ENT:Impact(owner, dt)
-    -- (特性) 效果
-end
-
-function ENT:Cost(owner, dt)
-    -- (特性) 消耗
-end
-
-
-function ENT:Expand()
+function ENT:Born(dt)
     -- (特性) 展开时执行
 end
 
-function ENT:Run()
+function ENT:Run(dt)
     -- (特性) 运行时执行
 end
 
-function ENT:Break()
+function ENT:Break(dt)
     -- (特性) 失效时执行
 end
+
 
 
