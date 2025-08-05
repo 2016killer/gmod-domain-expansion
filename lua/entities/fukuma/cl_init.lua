@@ -101,6 +101,7 @@ function ENT:Break(dt)
     local dt = FrameTime()
     local shellEnt = self.shells[DOMAIN_STATE_RUN].ent
     if IsValid(shellEnt) then shellEnt:SetAngles(shellEnt:GetAngles() + Angle(1000, 1000, 0) * dt) end
+    if self.soundID then LocalPlayer():StopLoopingSound(self.soundID) end
 end
 
 function ENT:OnRemove()

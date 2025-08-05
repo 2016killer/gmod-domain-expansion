@@ -510,9 +510,22 @@ end
 
 local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+
+
 function domain_ExpandCondition(ply, dotype)
+	if not IsValid(ply) or not ply:IsPlayer() then return false end
 	if not ply:Alive() then return false end
 	if ply:InVehicle() then return false end
+
+	if not scripted_ents.Get(dotype) then 
+		if CLIENT then ply:EmitSound('Trainyard.sodamachine_empty') end
+		return false 
+	end
+
+	if ply:GetNWFloat('FusingTime', 0) > CurTime() then 
+		if CLIENT then ply:EmitSound('ambient/energy/newspark09.wav') end
+		return false 
+	end
 	
 	local armor_condition = dm_armor_condition:GetFloat()
 	local health_condition = dm_health_condition:GetFloat()
@@ -533,10 +546,10 @@ local threatNextTime = 0
 function domain_Threat(ply)
 	local curTime = CurTime()
 	if curTime > threatNextTime then
-		threatNextTime = curTime + 1
-		net.Start('domain_threat')
-		net.WriteEntity(ply:GetPos())
-		net.SendToServer()
+		threatNextTime = curTime + 2
+		// net.Start('domain_threat')
+		// net.WriteVector(ply:GetPos())
+		// net.SendToServer()
 	end
 end
 

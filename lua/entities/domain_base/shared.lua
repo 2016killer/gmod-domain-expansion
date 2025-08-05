@@ -18,7 +18,6 @@ local STATE_BREAK = DOMAIN_STATE_BREAK
 
 function ENT:SetupDataTables()
     -- 调试变量, 用于无归属领域
-    self:SetHealth(100)
     self:NetworkVar('Int', 0, 'Armor') 
     self:NetworkVar('Bool', 'Execute') 
 
@@ -37,11 +36,14 @@ function ENT:Initialize()
         table.insert(DOMAIN_ALL, self)
     end
 
+    self:SetHealth(100)
     self:SetArmor(100)
-    self:SetOwner(self)
     self:SetState(STATE_BORN)
-    self:SetTRadius(2000)
-    self:SetExecute(true)
+    if not IsValid(self:GetOwner()) then 
+        self:SetOwner(self) 
+        self:SetTRadius(500)
+        self:SetExecute(true)
+    end
 
     self.radius = 0
     self.expandSpeed = GetConVar('dm_expand_speed'):GetFloat() -- 展开速度
@@ -156,7 +158,26 @@ function ENT:Cover(input)
     end
 end
 
+local dm_ft = CreateConVar('dm_ft', '60', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+function ENT:OnRemove()
+    local owner = self:GetOwner()
+    if CLIENT then
+        for _, shell in pairs(self.shells) do
+            if IsValid(shell.ent) then shell.ent:Remove() end
+        end
+        if IsValid(owner) and owner:IsPlayer() then
+            owner:EmitSound('ambient/energy/newspark11.wav')
+        end   
+    else 
+        if IsValid(owner) and owner:IsPlayer() then
+            owner:SetNWFloat('FusingTime', CurTime() + dm_ft:GetFloat())
+        end
+    end
+    
+end
+
 if SERVER then
+    -- 搜索与对抗逻辑
     DOMAIN_ALL = {} -- 添加到此才能触发搜索
     local domainAll = DOMAIN_ALL
     local searchPeriod = 0.05

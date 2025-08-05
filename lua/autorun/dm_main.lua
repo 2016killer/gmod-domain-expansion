@@ -20,9 +20,7 @@ if CLIENT then
 		-- 测量逻辑
 		if measureState then 
 			local dt = FrameTime() / game.GetTimeScale()
-			measureResult = measureResult + dt * dm_sensitivity:GetFloat()
-		else
-			measureResult = 0 
+			measureResult = measureResult + dt * dm_sensitivity:GetFloat() 
 		end
 	end)
 
@@ -93,47 +91,83 @@ if CLIENT then
 	end)
 	
 	
-	concommand.Add('+domain_run', function(ply, args)
-		if not domain_ExpandCondition(ply, args[1]) then return end
 
-		
-		measureState = true
-		// if not VManip then return end
-		// if VManip:PlayAnim("exedrop") then 
-		// 	exedrop = true net.Start('exedrop') 
-		// 	owner:EmitSound(Sound('Pistol.ItemPickupExtend')) 
-		// 	net.WriteBool(true) 
-		// 	net.SendToServer()  
-		// end
+	concommand.Add('+domain_start', function(ply, cmd, args)
+		local domain = ply:GetNWEntity('domain')
+		if IsValid(domain) then
+			net.Start('domain_execute')
+				net.WriteBool(true)
+			net.SendToServer()
+		else
+			if not domain_ExpandCondition(ply, args[1]) then return end
+			measureState = true
+		end
 	end)
 
-	concommand.Add('-domain_run', function(ply)
+	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+	concommand.Add('-domain_start', function(ply, cmd, args)
+		local domain = ply:GetNWEntity('domain')
+		if IsValid(domain) then
+			net.Start('domain_execute')
+				net.WriteBool(false)
+			net.SendToServer()
+		else
+			if measureState then
+				net.Start('domain_expand')
+					net.WriteString(args[1])
+					net.WriteFloat(measureResult)
+				net.SendToServer()
+			end
+		end
+
 		measureState = false
-		// net.Start('domain_expand')
-		// net.SendToServer()
+		measureResult = dm_minr:GetFloat()
 	end)
 
 	concommand.Add('domain_break', function(ply, args)
 		measureState = false
+		measureResult = dm_minr:GetFloat()
+
+		local domain = ply:GetNWEntity('domain')
+		if IsValid(domain) then  
+			net.Start('domain_break')
+			net.SendToServer()
+		end
 	end)
 end
 
 if SERVER then
-    util.AddNetworkString('domain_expand')
-
     net.Receive('domain_expand', function(len, ply)
-        print(ply)
-        // local center = ply:GetPos()
-        // local entity = ents.Create('fukuma')
-        // entity:SetPos(center)
-        // entity:SetAngles(Angle(0, 0, 0))
-        // entity:Spawn()
-        // entity:SetOwner(ply)
-        // print(entity:GetOwner())
-        // print(entity:GetNWEntity('owner'))
-        // return self:GetNWEntity('owner')
+		local dotype = net.ReadString()
+		local tRadius = net.ReadFloat()
+
+		if not domain_ExpandCondition(ply, dotype) then return end
+
+        local ent = ents.Create(dotype)
+        ent:SetPos(ply:GetPos())
+		ent:SetOwner(ply)
+		ent:SetTRadius(tRadius)
+        ent:Spawn()
+
+		ply:SetNWEntity('domain', ent)
     end)
 
+	net.Receive('domain_execute', function(len, ply)
+		local execute = net.ReadBool()
+		
+		local domain = ply:GetNWEntity('domain')
+		if IsValid(domain) and domain.SetExecute then  
+			domain:SetExecute(execute)
+		end
+    end)
+
+	local STATE_BREAK = DOMAIN_STATE_BREAK
+	net.Receive('domain_break', function(len, ply)
+		local domain = ply:GetNWEntity('domain')
+		if IsValid(domain) and domain.SetState then  
+			domain:SetState(STATE_BREAK)
+		end
+    end)
 
 	concommand.Add('domain_debug_material_type', function(ply)
 		local tr = ply:GetEyeTrace()

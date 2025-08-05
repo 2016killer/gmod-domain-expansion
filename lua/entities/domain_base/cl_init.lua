@@ -61,12 +61,6 @@ function ENT:Draw()
     end
 end
 
-function ENT:OnRemove()
-    for _, shell in pairs(self.shells) do
-        if IsValid(shell.ent) then shell.ent:Remove() end
-    end
-end
-
 function ENT:DrawCustomShell(state, shell, progress)
     -- (特性) 自定义外壳渲染
 end
