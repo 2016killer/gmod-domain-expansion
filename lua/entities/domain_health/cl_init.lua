@@ -8,9 +8,9 @@ BaseClass = nil
 
 function ENT:InitShells()
     self.shells = {
-        [STATE_BORN] = {material = 'domain/white'},
+        [STATE_BORN] = {material = 'dm/white'},
         [STATE_RUN] = {material = 'models/props_combine/portalball001_sheet'},
-        [STATE_BREAK] = {material = 'domain/white'}
+        [STATE_BREAK] = {material = 'dm/white'}
     }
 end
 

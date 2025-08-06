@@ -18,7 +18,7 @@ function ENT:InitShellEnts()
     for state, shell in pairs(self.shells) do
         if IsValid(shell.ent) then continue end
         local ent = ClientsideModel('models/dav0r/hoverball.mdl')
-        local material = isstring(shell.material) and shell.material or 'domain/black'
+        local material = isstring(shell.material) and shell.material or 'dm/black'
         local domain = self
         ent:SetMaterial(material)
         ent.RenderOverride = function(self)

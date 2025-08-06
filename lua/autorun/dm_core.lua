@@ -8,7 +8,7 @@ if CLIENT then
 
 	local function IsZero(v) return v.x == 0 and v.y == 0 and v.z == 0 end
 
-	function domain_UniformTriangle(l1, l2)
+	function dm_UniformTriangle(l1, l2)
 		-- 三角形内均匀采样点
         local x = math.random()
         local y = math.random()
@@ -19,22 +19,22 @@ if CLIENT then
 		return l1 * x + l2 * y
 	end
 
-	function domain_UniformSphere(radius)
+	function dm_UniformSphere(radius)
 		-- 球体内均匀采样点
 		return VectorRand() * radius * math.pow(math.random(), 0.333) 
 	end
 
-	function domain_UniformSphereSurface(radius)
+	function dm_UniformSphereSurface(radius)
 		-- 球面均匀采样点
 		return VectorRand() * radius * math.sqrt(math.random())
 	end
 
-	function domain_LinearSphere(radius)
+	function dm_LinearSphere(radius)
 		-- 球体内径向线性采样点
 		return VectorRand() * radius * math.random()
 	end
 
-    EMITTER.domain_LaserTrail = function(self, mat, startPos, endPos, width, unitLen, dieTime)
+    EMITTER.dm_LaserTrail = function(self, mat, startPos, endPos, width, unitLen, dieTime)
 		-- 创建激光尾迹
 		-- mat 材质名
 		-- startPos 起点
@@ -79,12 +79,12 @@ if CLIENT then
     end
 
     local temp
-	concommand.Add('domain_debug_laser_trail', function(ply)
+	concommand.Add('dm_debug_laser_trail', function(ply)
 		local pos = ply:GetEyeTrace().HitPos
 		if isvector(temp) then
 			local emitter = ParticleEmitter(zero)
             
-            emitter:domain_LaserTrail(
+            emitter:dm_LaserTrail(
                 'models/wireframe', 
                 temp,
                 pos,
@@ -102,7 +102,8 @@ if CLIENT then
 		end
 	end)
 
-    EMITTER.domain_SphereSnow = function(self, mat, radius, center, width, lenth, num, dieTime)
+	local UniformSphereSurface = dm_UniformSphereSurface
+    EMITTER.dm_SphereSnow = function(self, mat, radius, center, width, lenth, num, dieTime)
 		-- 在指定球体内创建雪花
 		-- radius 半径
 		-- center 中心
@@ -113,7 +114,7 @@ if CLIENT then
 		-- dieTime 消亡时间
 	
 		for i = 1, num do 
-			local part = self:Add(mat, center + domain_UniformSphereSurface(radius)) 
+			local part = self:Add(mat, center + UniformSphereSurface(radius)) 
 			if part then
 				part:SetDieTime(dieTime) 
 
@@ -134,14 +135,14 @@ if CLIENT then
 		end
 	end
 
-	concommand.Add('domain_debug_sphere_snow', function(ply)
+	concommand.Add('dm_debug_sphere_snow', function(ply)
 		local tr = ply:GetEyeTrace()
 		local radius = 500
 		local center = tr.HitPos + tr.HitNormal * radius
    
         local emitter = ParticleEmitter(zero)
         
-        emitter:domain_SphereSnow(
+        emitter:dm_SphereSnow(
             'models/wireframe', 
             radius,
             center,
@@ -154,7 +155,7 @@ if CLIENT then
 		emitter:Finish()
 	end)
 
-	function domain_GetAABBVertexes(mins, maxs)
+	function dm_GetAABBVertexes(mins, maxs)
     	-- 获取长方体顶点
 		local dimensions = maxs - mins
 		local axes = {
@@ -176,7 +177,7 @@ if CLIENT then
 		return verts
 	end
 
-	function domain_GetAABBScanData(mins, maxs, dir)
+	function dm_GetAABBScanData(mins, maxs, dir)
     	-- 获取长方体的切面扫描数据
 		-- 获取12条棱的深度区间
 		-- 可根据深度区间快速计算相交或交点
@@ -246,7 +247,7 @@ if CLIENT then
 		}
 	end
 
-	function domain_FastAABBSection(scanData, depth)
+	function dm_FastAABBSection(scanData, depth)
 		-- 快速计算AABB与深度区间的相交或交点
 		-- 返回截面点列表
 
@@ -266,7 +267,7 @@ if CLIENT then
 		return iPoints
 	end
 
-	function domain_PASort(points, origin)
+	function dm_PASort(points, origin)
 		-- 极角排序
 		if #points < 2 then return end
 
@@ -296,8 +297,8 @@ if CLIENT then
 		end)
 	end
 
-	local PASort = domain_PASort
-	function domain_3DPoints2Poly(points3D, u, v)
+	local PASort = dm_PASort
+	function dm_3DPoints2Poly(points3D, u, v)
 		-- 3D点集转多边形
 		-- u, v 平面的轴
 
@@ -333,7 +334,7 @@ if CLIENT then
 		return tris
 	end
 
-	function domain_3DPointsGrahamScan(points3D, u, v)
+	function dm_3DPointsGrahamScan(points3D, u, v)
 		-- 凸包构建
 		-- 将对原数组排序
 		if #points3D < 3 then return {} end
@@ -385,7 +386,7 @@ if CLIENT then
 		return tris
 	end
 
-	function domain_SimpleMesh(tris)
+	function dm_SimpleMesh(tris)
 		-- 生成简易网格 (固定uv)
 		local obj = Mesh()
 		local verts = {}
@@ -403,20 +404,20 @@ if CLIENT then
 		return obj
 	end
 
-	concommand.Add('domain_debug_aabb_section', function(ply)
+	concommand.Add('dm_debug_aabb_section', function(ply)
 		-- 正六面体对角线方向4等分
 		local pos = LocalPlayer():GetEyeTrace().HitPos
 		local mins, maxs = zero, Vector(125, 125, 125)
 		local dir = Vector(1, 2, 1):GetNormalized()
-		local scanData = domain_GetAABBScanData(mins, maxs, dir)
+		local scanData = dm_GetAABBScanData(mins, maxs, dir)
 		local unit = (scanData.maxDepth - scanData.minDepth) / 10
 	
 		-- 生成网格
 		local meshs = {}
 		for i = 1, 9 do
-			local obj = domain_SimpleMesh(
-				domain_3DPoints2Poly(
-					domain_FastAABBSection(scanData, scanData.minDepth + unit * i), 
+			local obj = dm_SimpleMesh(
+				dm_3DPoints2Poly(
+					dm_FastAABBSection(scanData, scanData.minDepth + unit * i), 
 					scanData.u, 
 					scanData.v)
 			)
@@ -425,7 +426,7 @@ if CLIENT then
 		end
 
 		local curTime = CurTime()
-		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_draw', function()
+		hook.Add('PostDrawOpaqueRenderables', 'dm_debug_draw', function()
 			local matrix = Matrix()
 			matrix:SetTranslation(pos)
 			cam.PushModelMatrix(matrix)
@@ -439,7 +440,7 @@ if CLIENT then
 			cam.PopModelMatrix()
 
 			if CurTime() - curTime > 20 then 
-				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_draw')
+				hook.Remove('PostDrawOpaqueRenderables', 'dm_debug_draw')
 			end
 		end)
 
@@ -448,24 +449,24 @@ if CLIENT then
 		end)
 	end)
 
-	concommand.Add('domain_debug_aabb_bounds2d', function(ply)
+	concommand.Add('dm_debug_aabb_bounds2d', function(ply)
 		-- 正六面体对角线方向4等分
 		local pos = LocalPlayer():GetEyeTrace().HitPos
 		local mins, maxs = zero, Vector(125, 125, 125)
 		local dir = Vector(1, 2, 1):GetNormalized()
-		local scanData = domain_GetAABBScanData(mins, maxs, dir)
+		local scanData = dm_GetAABBScanData(mins, maxs, dir)
 
-		local tris = domain_3DPointsGrahamScan(
-			domain_GetAABBVertexes(mins, maxs), 
+		local tris = dm_3DPointsGrahamScan(
+			dm_GetAABBVertexes(mins, maxs), 
 			scanData.u, 
 			scanData.v
 		)
 
 		-- 生成网格
-		local obj = domain_SimpleMesh(tris)
+		local obj = dm_SimpleMesh(tris)
 
 		local curTime = CurTime()
-		hook.Add('PostDrawOpaqueRenderables', 'domain_debug_draw', function()
+		hook.Add('PostDrawOpaqueRenderables', 'dm_debug_draw', function()
 			local matrix = Matrix()
 			matrix:SetTranslation(pos)
 			cam.PushModelMatrix(matrix)
@@ -478,7 +479,7 @@ if CLIENT then
 			cam.PopModelMatrix()
 
 			if CurTime() - curTime > 20 then 
-				hook.Remove('PostDrawOpaqueRenderables', 'domain_debug_draw')
+				hook.Remove('PostDrawOpaqueRenderables', 'dm_debug_draw')
 			end
 		end)
 
@@ -486,19 +487,25 @@ if CLIENT then
 
 	end)
 
-	concommand.Add('domain_debug_draw', function(ply, cmd, args)
+	concommand.Add('dm_debug_draw', function(ply, cmd, args)
 		local mat = Material(args[1])
 		local curTime = CurTime()
 
-		hook.Add('HUDPaint', 'domain_debug_draw', function()
+		hook.Add('HUDPaint', 'dm_debug_draw', function()
 			surface.SetDrawColor(255, 255, 255, 255)
 			surface.SetMaterial(mat)
 			surface.DrawTexturedRect(0, 0, 512, 512)
 
 			if CurTime() - curTime > 5 then 
-				hook.Remove('HUDPaint', 'domain_debug_draw')
+				hook.Remove('HUDPaint', 'dm_debug_draw')
 			end
 		end)
+	end)
+
+	concommand.Add('dm_debug_setmaterial', function(ply, cmd, args)
+		// effects/ar2_altfire1
+		local ent = ply:GetEyeTrace().Entity
+		ent:SetMaterial(args[1])
 	end)
 
 end
@@ -508,7 +515,7 @@ local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_ARCH
 local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 
-function domain_ExpandCondition(ply, dotype)
+function dm_ExpandCondition(ply, dotype)
 	if not IsValid(ply) or not ply:IsPlayer() then return false end
 	if not ply:Alive() then return false end
 	if ply:InVehicle() then return false end
@@ -536,17 +543,6 @@ function domain_ExpandCondition(ply, dotype)
 	end
 
 	return not hook.Run('PreDomainExpand', ply, dotype)
-end
-
-local threatNextTime = 0
-function domain_Threat(ply)
-	local curTime = CurTime()
-	if curTime > threatNextTime then
-		threatNextTime = curTime + 2
-		// net.Start('domain_threat')
-		// net.WriteVector(ply:GetPos())
-		// net.SendToServer()
-	end
 end
 
 

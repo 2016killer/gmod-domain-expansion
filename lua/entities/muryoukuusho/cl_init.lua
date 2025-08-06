@@ -8,9 +8,9 @@ BaseClass = nil
 
 function ENT:InitShells() 
     self.shells = {
-        [STATE_BORN] = {material = 'domain/white'},
-        [STATE_RUN] = {material = 'domain/black'},
-        [STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
+        [STATE_BORN] = {material = 'dm/white'},
+        [STATE_RUN] = {material = 'dm/black'},
+        [STATE_BREAK] = {material = 'dm/black', fadeInSpeed = 5}
     }
 end
 
@@ -111,7 +111,7 @@ function ENT:RunCall(dt)
         local num = math.min(200, math.max(1, math.floor(radius * 0.25)))
         local dieTime = 1
 
-        emitter:domain_SphereSnow(
+        emitter:dm_SphereSnow(
             'effects/spark', 
             radius,
             center,
@@ -132,3 +132,25 @@ function ENT:OnRemove()
 end
 
 // ambient/energy/zap2.wav
+
+function mryks_eyefx(action)
+    if action then
+        hook.Add('RenderScreenspaceEffects', 'mryks_eyefx', function()
+            DrawMaterialOverlay("effects/tp_eyefx/tpeye", 0)
+        end)
+
+        local period = 0.5
+        local timeCount = 0
+        hook.Add('Think', 'mryks_eyefx', function()
+            timeCount = timeCount + FrameTime()
+            if timeCount >= period then
+                timeCount = timeCount - period
+                LocalPlayer():EmitSound('ambient/energy/zap'..math.floor(math.random(1, 3.999))..'.wav')
+            end
+        end)
+
+    else
+        hook.Remove('RenderScreenspaceEffects', 'mryks_eyefx')
+        hook.Remove('Think', 'mryks_eyefx')
+    end
+end

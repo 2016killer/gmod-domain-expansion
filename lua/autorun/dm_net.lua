@@ -1,8 +1,8 @@
 if SERVER then
-	util.AddNetworkString('domain_threat')
-	util.AddNetworkString('domain_expand')
-	util.AddNetworkString('domain_execute')
-	util.AddNetworkString('domain_break')
+	util.AddNetworkString('dm_threat')
+	util.AddNetworkString('dm_expand')
+	util.AddNetworkString('dm_execute')
+	util.AddNetworkString('dm_break')
 end
 
 

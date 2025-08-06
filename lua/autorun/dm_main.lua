@@ -1,7 +1,8 @@
 if CLIENT then
 	-- 测量
+	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
     local measureState = false
-	local measureResult = 0
+	local measureResult = dm_minr:GetFloat()
 
 	local measureEnts // 特效模型
 	local function getMeasureEnts()
@@ -16,7 +17,7 @@ if CLIENT then
 	end
 
 	local dm_sensitivity = CreateClientConVar('dm_sensitivity', '500', true, false)
-	hook.Add('Think', 'domain_measure', function()
+	hook.Add('Think', 'dm_measure', function()
 		-- 测量逻辑
 		if measureState then 
 			local dt = FrameTime() / game.GetTimeScale()
@@ -24,7 +25,7 @@ if CLIENT then
 		end
 	end)
 
-	hook.Add('PostDrawOpaqueRenderables', 'domain_measure', function()
+	hook.Add('PostDrawOpaqueRenderables', 'dm_measure', function()
         -- 特效
 		if not measureState then return end
 
@@ -90,28 +91,38 @@ if CLIENT then
 		render.SuppressEngineLighting(false)
 	end)
 	
-	concommand.Add('+domain_start', function(ply, cmd, args)
+	local dm_threat = CreateConVar('dm_threat', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+	local threatNextTime = 0
+	concommand.Add('+dm_start', function(ply, cmd, args)
 		local domain = ply:GetNWEntity('domain')
 		if IsValid(domain) then
-			net.Start('domain_execute')
+			net.Start('dm_execute')
 				net.WriteBool(true)
 			net.SendToServer()
 		else
-			if not domain_ExpandCondition(ply, args[1]) then return end
+			if not dm_ExpandCondition(ply, args[1]) then return end
 			measureState = true
+
+			-- 威胁
+			local curTime = CurTime()
+			if dm_threat:GetBool() and curTime > threatNextTime then
+				threatNextTime = curTime + 2
+				net.Start('dm_threat')
+					net.WriteVector(ply:GetPos())
+				net.SendToServer()
+			end
 		end
 	end)
 
-	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-	concommand.Add('-domain_start', function(ply, cmd, args)
+	concommand.Add('-dm_start', function(ply, cmd, args)
 		local domain = ply:GetNWEntity('domain')
 		if IsValid(domain) then
-			net.Start('domain_execute')
+			net.Start('dm_execute')
 				net.WriteBool(false)
 			net.SendToServer()
 		else
 			if measureState then
-				net.Start('domain_expand')
+				net.Start('dm_expand')
 					net.WriteString(args[1])
 					net.WriteFloat(measureResult)
 				net.SendToServer()
@@ -122,24 +133,81 @@ if CLIENT then
 		measureResult = dm_minr:GetFloat()
 	end)
 
-	concommand.Add('domain_break', function(ply, args)
+	concommand.Add('dm_break', function(ply, args)
 		measureState = false
 		measureResult = dm_minr:GetFloat()
 
 		local domain = ply:GetNWEntity('domain')
 		if IsValid(domain) then  
-			net.Start('domain_break')
+			net.Start('dm_break')
 			net.SendToServer()
 		end
 	end)
+
+
+	local warningMat = Material('dm/warning.png')
+	local warningPosList = {}
+	hook.Add('HUDPaint', 'dm_threat', function()
+        -- 危险预警
+		if #warningPosList > 0 then
+			local cx, cy = ScrW() * 0.5, ScrH() * 0.5
+			local dt = RealFrameTime()
+
+			surface.SetMaterial(warningMat)
+			for i = #warningPosList, 1, -1 do
+				local data = warningPosList[i]
+
+				local progress = data.progress
+				if progress > 1 then
+					table.remove(warningPosList, i)
+					continue
+				end
+
+				local pos = data.pos:ToScreen()
+				local scale = (progress < 0.5 and progress or (1 - progress)) * 4
+				local alpha = 255 * scale
+				local width = 100 * scale
+	
+				surface.SetDrawColor(255, 255, 255, alpha)
+				surface.DrawTexturedRect(
+					pos.x - 0.5 * width, 
+					pos.y - 0.5 * width, 
+					width, 
+					width
+				)
+
+				data.progress = data.progress + dt * 0.8
+			end
+		end
+	end)
+
+	local dm_threat_range = CreateConVar('dm_threat_range', '1000', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+	net.Receive('dm_threat', function()
+		local ply = net.ReadEntity()
+		local pos = net.ReadVector()
+
+		local lply = LocalPlayer()
+	
+		if lply ~= ply and dm_threat:GetBool() then  
+			if pos:Distance(lply:GetPos()) < dm_threat_range:GetFloat() then
+				lply:EmitSound('dm/warning.wav')
+				table.insert(warningPosList, {pos = pos, progress = 0})
+			end
+		end
+    end)
+
+	function dm_GetMeasureResult()
+		return measureResult
+	end
+
 end
 
 if SERVER then
-    net.Receive('domain_expand', function(len, ply)
+    net.Receive('dm_expand', function(len, ply)
 		local dotype = net.ReadString()
 		local tRadius = net.ReadFloat()
 
-		if not domain_ExpandCondition(ply, dotype) then return end
+		if not dm_ExpandCondition(ply, dotype) then return end
 
         local ent = ents.Create(dotype)
         ent:SetPos(ply:GetPos())
@@ -150,7 +218,7 @@ if SERVER then
 		ply:SetNWEntity('domain', ent)
     end)
 
-	net.Receive('domain_execute', function(len, ply)
+	net.Receive('dm_execute', function(len, ply)
 		local execute = net.ReadBool()
 		
 		local domain = ply:GetNWEntity('domain')
@@ -159,24 +227,26 @@ if SERVER then
 		end
     end)
 
-	net.Receive('domain_break', function(len, ply)
+	net.Receive('dm_break', function(len, ply)
 		local domain = ply:GetNWEntity('domain')
 		if IsValid(domain) then 
 			domain:Break()
 		end
     end)
 
-	concommand.Add('domain_debug_material_type', function(ply)
+	net.Receive('dm_threat', function(len, ply)
+		local pos = net.ReadVector()
+		net.Start('dm_threat')
+			net.WriteEntity(ply)
+			net.WriteVector(pos)
+		net.Broadcast()
+    end)
+
+	concommand.Add('dm_debug_material_type', function(ply)
 		local tr = ply:GetEyeTrace()
 		local ent = tr.Entity
 		local phy = ent:GetPhysicsObject()
 		print(phy:GetMaterial())
 	end)
-
-	concommand.Add('asdasd', function(ply)
-		Entity(1):Freeze(not Entity(1):IsFrozen())
-	end)
-
-	
 
 end

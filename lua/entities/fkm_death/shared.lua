@@ -8,10 +8,10 @@ ENT.Spawnable = false
 
 -- 实体的fkm死亡逻辑
 if SERVER then
-    util.AddNetworkString('domain_fkm_die')
+    util.AddNetworkString('fkmd_entity_die')
 
     local fkmDieQueue = {} 
-    function domain_fkm_die(ent, duration)
+    function fkmd_EntityDie(ent, duration)
         -- ent 目标实体
         -- duration 动画时长
         
@@ -30,14 +30,14 @@ if SERVER then
             dietime = CurTime() + duration
         }
 
-        net.Start('domain_fkm_die')
+        net.Start('fkmd_entity_die')
             net.WriteEntity(ent)
             net.WriteFloat(duration)
             net.WriteString(matType)
         net.Broadcast()
     end
 
-    hook.Add('Think', 'domain_fkm_die', function()
+    hook.Add('Think', 'fkmd_entity_die', function()
         -- 移除逻辑
         for i = #fkmDieQueue, 1, -1 do
             local data = fkmDieQueue[i]
@@ -50,7 +50,8 @@ if SERVER then
         end
     end)
 
-    concommand.Add('domain_debug_fkm_die', function(ply, cmd, args)
+    concommand.Add('fkmd_debug_entity_die', function(ply, cmd, args)
+
         local ent = ply:GetEyeTrace().Entity
         if not IsValid(ent) then return end
         domain_fkm_die(ent, 1, true)

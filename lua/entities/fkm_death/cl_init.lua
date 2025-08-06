@@ -6,13 +6,13 @@ local white = Color(255, 255, 255, 255)
 
 local render = render
 local math = math
-local FastAABBSection = domain_FastAABBSection
-local Points3D2Poly = domain_3DPoints2Poly
-local UniformTriangle = domain_UniformTriangle
-local GetAABBScanData = domain_GetAABBScanData
-local SimpleMesh = domain_SimpleMesh
-local Points3DGrahamScan = domain_3DPointsGrahamScan
-local GetAABBVertexes = domain_GetAABBVertexes
+local FastAABBSection = dm_FastAABBSection
+local Points3D2Poly = dm_3DPoints2Poly
+local UniformTriangle = dm_UniformTriangle
+local GetAABBScanData = dm_GetAABBScanData
+local SimpleMesh = dm_SimpleMesh
+local Points3DGrahamScan = dm_3DPointsGrahamScan
+local GetAABBVertexes = dm_GetAABBVertexes
 
 function ENT:Initialize()
     self.bornTime = CurTime()
@@ -115,8 +115,8 @@ function ENT:InitClip(dir, start, speed, mins, maxs, matType)
     )
 end
 
-local materialTypeTable = domain_materialTypeTable
-local effectDataTable = domain_effectDataTable
+local materialTypeTable = fkmd_materialTypeTable
+local effectDataTable = fkmd_effectDataTable
 
 function ENT:SetEffectData(matType)
     for tp, hash in pairs(materialTypeTable) do
@@ -232,7 +232,7 @@ end
 
 
 
-concommand.Add('domain_clear_fkm_death', function()
+concommand.Add('fkmd_clear', function()
     for _, ent in ipairs(ents.FindByClass('fkm_death')) do
         ent:Remove()
     end

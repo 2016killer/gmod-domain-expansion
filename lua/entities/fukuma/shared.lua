@@ -6,14 +6,17 @@ ENT.PrintName = 'Fukuma'
 ENT.Category = 'Domain'
 ENT.Spawnable = true
 
+CreateConVar('fkm_ka', '2.5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('fkm_kh', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('fkm_damage', '100', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 if CLIENT then
     local phrase = language.GetPhrase
 
-    hook.Add('PopulateToolMenu', 'fkm', function()
+    hook.Add('PopulateToolMenu', 'fkm_menu', function()
         spawnmenu.AddToolMenuOption('Utilities', 
             phrase('fkm.menu.category'),
-            'fkm', 
+            'fkm_menu', 
             phrase('fkm.menu.name'), '', '', 
             function(panel)
                 panel:Clear()
@@ -22,16 +25,11 @@ if CLIENT then
                 panel:Help(phrase('fkm.help.ka'))
                 panel:NumSlider(phrase('fkm.var.kh'), 'fkm_kh', 0, 50, 3)
                 panel:Help(phrase('fkm.help.kh'))
+                panel:NumSlider(phrase('fkm.var.damage'), 'fkm_damage', 0, 5000, 3)
+        
             end
         )
     end)
 end
 
-local fkm_ka = CreateConVar('fkm_ka', '2.5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-local fkm_kh = CreateConVar('fkm_kh', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
-if SERVER then
-    function ENT:Cost(radius, dt)
-        return fkm_ka:GetFloat() * radius * 0.00390625 * dt, fkm_kh:GetFloat() * dt
-    end
-end

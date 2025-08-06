@@ -8,9 +8,9 @@ BaseClass = nil
 
 function ENT:InitShells() 
     self.shells = {
-        [STATE_BORN] = {material = 'domain/black'},
+        [STATE_BORN] = {material = 'dm/black'},
         [STATE_RUN] = {material = 'Models/effects/comball_sphere', fadeOutSpeed=5},
-        [STATE_BREAK] = {material = 'domain/black'}
+        [STATE_BREAK] = {material = 'dm/black'}
     }
 end
 
@@ -29,7 +29,7 @@ function ENT:LaserStormEffect(dt)
     local period = 0.05
     local radius = self.radius
     local center = self:GetPos()
-    local unitLen = math.max(1, radius * 0.1)
+    local unitLen = math.max(1, radius * 0.2)
     local num = 40
     local width = 30
     local dieTime = 0.1
@@ -53,7 +53,7 @@ function ENT:LaserStormEffect(dt)
             local lineDir = dirSample:Up() * sin + dirSample:Right() * cos
             local lineLen = math.sqrt(radius * radius - radiusSample * radiusSample)
 
-            self.emitter:domain_LaserTrail(
+            self.emitter:dm_LaserTrail(
                     math.random() > 0.5 and 'fkm/laserblack' or 'fkm/laserblack2', 
                     lineCenter + lineDir * lineLen,
                     lineCenter - lineDir * lineLen,

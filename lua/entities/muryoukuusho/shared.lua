@@ -7,32 +7,36 @@ ENT.Category = 'Domain'
 ENT.Spawnable = true
 
 
+CreateConVar('mryks_ka', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('mryks_damage', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('mryks_damage_brain', '10', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('mryks_sleep_max', '60', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+
+
 if CLIENT then
     local phrase = language.GetPhrase
 
-    hook.Add('PopulateToolMenu', 'fkm', function()
+    hook.Add('PopulateToolMenu', 'mryks_menu', function()
         spawnmenu.AddToolMenuOption('Utilities', 
-            phrase('fkm.menu.category'),
-            'fkm', 
-            phrase('fkm.menu.name'), '', '', 
+            phrase('mryks.menu.category'),
+            'mryks_menu', 
+            phrase('mryks.menu.name'), '', '', 
             function(panel)
                 panel:Clear()
    
-                panel:NumSlider(phrase('fkm.var.ka'), 'fkm_ka', 0, 50, 3)
-                panel:Help(phrase('fkm.help.ka'))
-                panel:NumSlider(phrase('fkm.var.kh'), 'fkm_kh', 0, 50, 3)
-                panel:Help(phrase('fkm.help.kh'))
+                panel:NumSlider(phrase('mryks.var.ka'), 'mryks_ka', 0, 50, 3)
+                panel:Help(phrase('mryks.help.ka'))
+                panel:NumSlider(phrase('mryks.var.damage'), 'mryks_damage', 0, 5000, 3)
+                panel:Help(phrase('mryks.help.damage'))
+                panel:NumSlider(phrase('mryks.var.damage_brain'), 'mryks_damage_brain', 0, 50, 3)
+                panel:Help(phrase('mryks.help.damage_brain'))
+                panel:NumSlider(phrase('mryks.var.sleep_max'), 'mryks_sleep_max', 0, 120, 3)
             end
         )
     end)
 end
 
-local fkm_ka = CreateConVar('fkm_ka', '2.5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-local fkm_kh = CreateConVar('fkm_kh', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 if SERVER then
-    function ENT:Cost(radius, dt)
-        return fkm_ka:GetFloat() * radius * radius * 0.00390625 * dt, fkm_kh:GetFloat() * dt
-    end
 
 end

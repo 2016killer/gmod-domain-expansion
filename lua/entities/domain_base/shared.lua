@@ -101,6 +101,7 @@ local function BreakCondition(domain)
     end
 end
 
+local dm_rcost = CreateConVar('dm_rcost', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 function ENT:Think()
     local state = self:GetState()
     local tRadius = self:GetTRadius()
@@ -126,9 +127,15 @@ function ENT:Think()
         self:SetScale(self.radius * 0.166)
         self:BornCall(dt)
     elseif state == STATE_RUN then 
-        if SERVER and execute then 
-            self:Impact(self:GetOwner(), self.impactEnts, dt)  
-            self:CostAcc(self:Cost(tRadius, dt))
+        if SERVER then 
+            local costArmor, costHealth
+            if execute then
+                self:Impact(self:GetOwner(), self.impactEnts, dt)  
+                costArmor, costHealth = self:Cost(tRadius, dt) 
+            else
+                costArmor, costHealth = 0, 0
+            end
+            self:CostAcc(costArmor + dm_rcost:GetFloat() * dt, costHealth)
         end
         self:RunCall(dt)
     elseif state == STATE_BREAK then 
@@ -204,19 +211,31 @@ function ENT:Cover(input)
     end
 end
 
+
 local dm_ft = CreateConVar('dm_ft', '60', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 function ENT:OnRemove()
     local owner = self:GetOwner()
+    -- CD处理
+    if IsValid(owner) and owner:IsPlayer() then
+        local cdtime = dm_ft:GetFloat() 
+        if cdtime > 0 then
+            if CLIENT then
+                owner:EmitSound('ambient/energy/newspark11.wav')
+                timer.Simple(cdtime + 1, function()
+                    if owner:GetNWFloat('FusingTime') < CurTime() then
+                        owner:EmitSound('hl1/fvox/bell.wav')
+                    end
+                end)
+            else
+                owner:SetNWFloat('FusingTime', CurTime() + dm_ft:GetFloat())
+            end
+        end
+    end   
+
+    -- 外壳移除
     if CLIENT then
         for _, shell in pairs(self.shells) do
             if IsValid(shell.ent) then shell.ent:Remove() end
-        end
-        if IsValid(owner) and owner:IsPlayer() then
-            owner:EmitSound('ambient/energy/newspark11.wav')
-        end   
-    else 
-        if IsValid(owner) and owner:IsPlayer() then
-            owner:SetNWFloat('FusingTime', CurTime() + dm_ft:GetFloat())
         end
     end
 end
@@ -226,7 +245,7 @@ if SERVER then
     local cdamage = CreateConVar('dm_cdamage', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
     local tickcount = 0
     local period = 2
-    hook.Add('Think', 'domain_search', function()
+    hook.Add('Think', 'dm_search', function()
         -- 筛选领域包含的实体集合
         -- 自身范围内并不被其他领域包含的实体 (不包含自身)
         -- 计数法筛选
