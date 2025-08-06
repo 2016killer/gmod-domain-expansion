@@ -6,15 +6,44 @@ ENT.PrintName = 'Domain Base'
 ENT.Category = 'Domain'
 ENT.Spawnable = true
 
+ENT.AllInstance = {}
+ENT.STATE_BORN = 1
+ENT.STATE_RUN = 2
+ENT.STATE_BREAK = 3
 
 -- 生命周期 BORN -> RUN -> BREAK
-DOMAIN_STATE_BORN = 1
-DOMAIN_STATE_RUN = 2
-DOMAIN_STATE_BREAK = 3
+local AllInstance = ENT.AllInstance
+local STATE_BORN = ENT.STATE_BORN
+local STATE_RUN = ENT.STATE_RUN
+local STATE_BREAK = ENT.STATE_BREAK
 
-local STATE_BORN = DOMAIN_STATE_BORN
-local STATE_RUN = DOMAIN_STATE_RUN
-local STATE_BREAK = DOMAIN_STATE_BREAK
+function ENT:Born() 
+    self:SetState(STATE_BORN) 
+end
+
+function ENT:Run()
+    self:SetState(STATE_RUN)
+end
+
+function ENT:Break()
+    self:SetState(STATE_BREAK)
+end
+
+function ENT:IsBorn() 
+    return self:GetState() == STATE_BORN
+end
+
+function ENT:IsRun()
+    return self:GetState() == STATE_RUN
+end
+
+function ENT:IsBreak()
+    return self:GetState() == STATE_BREAK
+end
+
+function ENT:Register()
+    table.insert(AllInstance, self)
+end
 
 function ENT:SetupDataTables()
     -- 调试变量, 用于无归属领域
@@ -28,12 +57,14 @@ end
 
 function ENT:Armor() return self:GetArmor() end
 
+
+
 function ENT:Initialize() 
     if CLIENT then 
         self:InitShells()
         self:InitShellEnts() 
     else
-        table.insert(DOMAIN_ALL, self)
+        self:Register()
     end
 
     self:SetHealth(100)
@@ -56,14 +87,16 @@ function ENT:Initialize()
 end
 
 
-local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 local function BreakCondition(domain)
     local owner = domain:GetOwner()
     if not IsValid(owner) then 
         return true 
-    elseif owner:Armor() <= dm_armor_condition:GetFloat() or owner:Health() < dm_health_condition:GetFloat() then 
+    elseif owner:IsPlayer() and not owner:Alive() then 
+        return true 
+    elseif owner:Armor() < dm_armor_condition:GetFloat() or owner:Health() < dm_health_condition:GetFloat() then 
         return true 
     end
 end
@@ -91,38 +124,51 @@ function ENT:Think()
             0, 
             tRadius) 
         self:SetScale(self.radius * 0.166)
-        self:Born(dt)
+        self:BornCall(dt)
     elseif state == STATE_RUN then 
         if SERVER and execute then 
-            local owner = self:GetOwner()
-    
-            self:Impact(owner, self.impactEnts, dt) 
-            local costArmor, costHealth = self:Cost(tRadius, dt)
-            
-            if costArmor ~= nil and costArmor > 0 then
-                local armor = owner:Armor()
-                if armor > 0 then
-                    owner:SetArmor(math.max(1, armor - costArmor))
-                end
-            end
-            if costHealth ~= nil and costHealth > 0 then
-                local health = owner:Health()
-                if health > 0 then
-                    owner:SetHealth(math.max(1, health - costHealth))
-                end
-            end
+            self:Impact(self:GetOwner(), self.impactEnts, dt)  
+            self:CostAcc(self:Cost(tRadius, dt))
         end
-        self:Run(dt)
+        self:RunCall(dt)
     elseif state == STATE_BREAK then 
         self.radius = math.max(self.radius - 1000 * dt, 0)
         self:SetScale(self.radius * 0.166)
         if SERVER and self.radius <= 0 then self:Remove() end
 
-        self:Break(dt)
+        self:BreakCall(dt)
     end
 
+    self.stateLast = state
     self:NextThink(CurTime() + dt)
     return true
+end
+
+function ENT:CostAcc(costArmor, costHealth)
+    self.caAcc = (self.caAcc or 0) + (costArmor or 0)
+    self.chAcc = (self.chAcc or 0) + (costHealth or 0)
+
+    local caInt = math.floor(self.caAcc)
+    local chInt = math.floor(self.chAcc)
+    
+    local owner = self:GetOwner()
+    if caInt > 0 then
+        self.caAcc = self.caAcc - caInt
+
+        local armor = owner:Armor()
+        if armor > 0 then
+            owner:SetArmor(math.max(1, armor - caInt))
+        end
+    end
+
+    if chInt > 0 then
+        self.chAcc = self.chAcc - chInt
+
+        local health = owner:Health()
+        if health > 0 then
+            owner:SetHealth(math.max(1, health - chInt))
+        end
+    end
 end
 
 function ENT:Move(pos)
@@ -137,8 +183,8 @@ function ENT:Move(pos)
 end
 
 function ENT:SetScale(scale)
+    self:SetModelScale(scale) -- 确保外壳在可见集里以及能够被搜索到
     if CLIENT then
-        self:SetModelScale(scale)
         for _, shell in pairs(self.shells) do
             if IsValid(shell.ent) then 
                 shell.ent:SetModelScale(scale) 
@@ -158,7 +204,7 @@ function ENT:Cover(input)
     end
 end
 
-local dm_ft = CreateConVar('dm_ft', '60', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_ft = CreateConVar('dm_ft', '60', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 function ENT:OnRemove()
     local owner = self:GetOwner()
     if CLIENT then
@@ -173,34 +219,35 @@ function ENT:OnRemove()
             owner:SetNWFloat('FusingTime', CurTime() + dm_ft:GetFloat())
         end
     end
-    
 end
 
 if SERVER then
-    -- 搜索与对抗逻辑
-    DOMAIN_ALL = {} -- 添加到此才能触发搜索
-    local domainAll = DOMAIN_ALL
-    local searchPeriod = 0.05
-    local searchTimer = 0
+    -- 搜索与碰撞逻辑
+    local cdamage = CreateConVar('dm_cdamage', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+    local tickcount = 0
+    local period = 2
     hook.Add('Think', 'domain_search', function()
         -- 筛选领域包含的实体集合
         -- 自身范围内并不被其他领域包含的实体 (不包含自身)
         -- 计数法筛选
-        
-        searchTimer = searchTimer + FrameTime()
-        if searchTimer < searchPeriod then return end
-        searchTimer = 0
+    
+        tickcount = tickcount + 1
+        if tickcount < period then return end
+        tickcount = 0
+        if #AllInstance < 1 then return end
 
-        if #domainAll < 1 then return end
+        local cdamageinfo = DamageInfo() -- 碰撞伤害
+        cdamageinfo:SetDamage(cdamage:GetFloat() * FrameTime() * period)
+
 
         local allSphereEntities = {}
         local inSphereCount = {}
 
-        for i = #domainAll, 1, -1 do
-            local domain = domainAll[i]
+        for i = #AllInstance, 1, -1 do
+            local domain = AllInstance[i]
             
             if not IsValid(domain) then
-                table.remove(domainAll, i)
+                table.remove(AllInstance, i)
                 continue
             end
                 
@@ -210,11 +257,23 @@ if SERVER then
             
             -- 记录有效实体并计数
             for _, ent in ipairs(sphereEnts) do
-                if not IsValid(ent) or ent == domain or ent:IsWorld() then continue end
-                if ent:IsPlayer() and not ent:Alive() then continue end
-                local entIndex = ent:EntIndex()
-                table.insert(validEnts, ent)
-                inSphereCount[entIndex] = (inSphereCount[entIndex] or 0) + 1
+                if ent == domain then continue end
+                -- TODO 用全局哈希可能更快, 但是管理更麻烦
+                if scripted_ents.IsBasedOn(ent:GetClass(), 'domain_base')then
+                    ent:TakeDamageInfo(cdamageinfo)
+                else
+                    if not IsValid(ent) or ent:IsWorld() or not ent:IsSolid() then 
+                        continue 
+                    end
+                    if ent:IsPlayer() and not ent:Alive() then 
+                        continue 
+                    end
+            
+                    local entIndex = ent:EntIndex()
+
+                    table.insert(validEnts, ent)
+                    inSphereCount[entIndex] = (inSphereCount[entIndex] or 0) + 1
+                end
             end
             
             allSphereEntities[i] = {
@@ -235,12 +294,6 @@ if SERVER then
             end
             
             data.domain.impactEnts = uniqueEntities
-        end
-
-        -- 领域对抗
-        for _, domain in pairs(domainAll) do
-
- 
         end
     end)
 

@@ -21,8 +21,3 @@ function ENT:Impact(owner, entsIn, dt)
         end
     end
 end
-
-function ENT:Cost()
-
-
-end

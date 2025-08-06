@@ -7,9 +7,9 @@ function ENT:InitShells()
     -- fadeOutSpeed 淡出速度
     -- progress 进度
     self.shells = {
-        [DOMAIN_STATE_BORN] = {},
-        [DOMAIN_STATE_RUN] = {},
-        [DOMAIN_STATE_BREAK] = {}
+        [self.STATE_BORN] = {},
+        [self.STATE_RUN] = {},
+        [self.STATE_BREAK] = {}
     }
 end
 
@@ -65,15 +65,15 @@ function ENT:DrawCustomShell(state, shell, progress)
     -- (特性) 自定义外壳渲染
 end
 
-function ENT:Born(dt)
+function ENT:BornCall(dt)
     -- (特性) 展开时执行
 end
 
-function ENT:Run(dt)
+function ENT:RunCall(dt)
     -- (特性) 运行时执行
 end
 
-function ENT:Break(dt)
+function ENT:BreakCall(dt)
     -- (特性) 失效时执行
 end
 

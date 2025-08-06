@@ -154,10 +154,6 @@ if CLIENT then
 		emitter:Finish()
 	end)
 
-
-
-
-
 	function domain_GetAABBVertexes(mins, maxs)
     	-- 获取长方体顶点
 		local dimensions = maxs - mins
@@ -508,8 +504,8 @@ if CLIENT then
 end
 
 
-local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_armor_condition = CreateConVar('dm_armor_condition', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_health_condition = CreateConVar('dm_health_condition', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 
 function domain_ExpandCondition(ply, dotype)
@@ -530,11 +526,11 @@ function domain_ExpandCondition(ply, dotype)
 	local armor_condition = dm_armor_condition:GetFloat()
 	local health_condition = dm_health_condition:GetFloat()
 
-	if ply:Armor() <= armor_condition then
+	if ply:Armor() < armor_condition then
 		if CLIENT then ply:EmitSound('TriggerSuperArmor.DoneCharging') end
 		return false
 	end
-	if ply:Health() <= health_condition then
+	if ply:Health() < health_condition then
 		if CLIENT then ply:EmitSound('WallHealth.Deny') end
 		return false
 	end
@@ -552,5 +548,7 @@ function domain_Threat(ply)
 		// net.SendToServer()
 	end
 end
+
+
 
 

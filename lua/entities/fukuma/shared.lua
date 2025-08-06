@@ -27,28 +27,11 @@ if CLIENT then
     end)
 end
 
-local fkm_ka = CreateConVar('fkm_ka', '2.5', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-local fkm_kh = CreateConVar('fkm_kh', '5', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local fkm_ka = CreateConVar('fkm_ka', '2.5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local fkm_kh = CreateConVar('fkm_kh', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 if SERVER then
     function ENT:Cost(radius, dt)
-        local owner = self:GetOwner()
-        if self.caAcc == nil then self.caAcc = 0 end
-        if self.chAcc == nil then self.chAcc = 0 end
-
-        self.caAcc = self.caAcc + fkm_ka:GetFloat() * radius * 0.00390625 * dt 
-        self.chAcc = self.chAcc + fkm_kh:GetFloat() * dt
-
-        local costArmor = math.floor(self.caAcc)
-        local costHealth = math.floor(self.chAcc)
-        if costArmor > 0 then
-            self.caAcc = self.caAcc - costArmor
-        end
-        if costHealth > 0 then
-            self.chAcc = self.chAcc - costHealth
-        end
-
-        return costArmor, costHealth
+        return fkm_ka:GetFloat() * radius * 0.00390625 * dt, fkm_kh:GetFloat() * dt
     end
-
 end

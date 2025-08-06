@@ -1,10 +1,16 @@
 include('shared.lua')
 
+local BaseClass = scripted_ents.Get(ENT.Base)
+local STATE_BORN = BaseClass.STATE_BORN
+local STATE_RUN = BaseClass.STATE_RUN
+local STATE_BREAK = BaseClass.STATE_BREAK
+BaseClass = nil
+
 function ENT:InitShells() 
     self.shells = {
-        [DOMAIN_STATE_BORN] = {material = 'domain/white'},
-        [DOMAIN_STATE_RUN] = {material = 'domain/black'},
-        [DOMAIN_STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
+        [STATE_BORN] = {material = 'domain/white'},
+        [STATE_RUN] = {material = 'domain/black'},
+        [STATE_BREAK] = {material = 'domain/black', fadeInSpeed = 5}
     }
 end
 
@@ -15,7 +21,7 @@ local ballMat2 = Material('models/props_foliage/tree_deciduous_01a_trunk')
 
 function ENT:InitShellEnts()
     self.BaseClass.InitShellEnts(self)
-    local shell = self.shells[DOMAIN_STATE_RUN]
+    local shell = self.shells[STATE_RUN]
     local ent = shell.ent
     ent.RenderOverride = function(self2)
         if not IsValid(self) then 
@@ -92,7 +98,7 @@ function ENT:InitShellEnts()
     end
 end
 
-function ENT:Run(dt)
+function ENT:RunCall(dt)
     if not self:GetExecute() then return end
     local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())

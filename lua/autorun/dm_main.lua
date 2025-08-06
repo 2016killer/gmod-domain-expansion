@@ -90,8 +90,6 @@ if CLIENT then
 		render.SuppressEngineLighting(false)
 	end)
 	
-	
-
 	concommand.Add('+domain_start', function(ply, cmd, args)
 		local domain = ply:GetNWEntity('domain')
 		if IsValid(domain) then
@@ -104,7 +102,7 @@ if CLIENT then
 		end
 	end)
 
-	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 	concommand.Add('-domain_start', function(ply, cmd, args)
 		local domain = ply:GetNWEntity('domain')
 		if IsValid(domain) then
@@ -156,16 +154,15 @@ if SERVER then
 		local execute = net.ReadBool()
 		
 		local domain = ply:GetNWEntity('domain')
-		if IsValid(domain) and domain.SetExecute then  
+		if IsValid(domain) then  
 			domain:SetExecute(execute)
 		end
     end)
 
-	local STATE_BREAK = DOMAIN_STATE_BREAK
 	net.Receive('domain_break', function(len, ply)
 		local domain = ply:GetNWEntity('domain')
-		if IsValid(domain) and domain.SetState then  
-			domain:SetState(STATE_BREAK)
+		if IsValid(domain) then 
+			domain:Break()
 		end
     end)
 
@@ -175,5 +172,11 @@ if SERVER then
 		local phy = ent:GetPhysicsObject()
 		print(phy:GetMaterial())
 	end)
+
+	concommand.Add('asdasd', function(ply)
+		Entity(1):Freeze(not Entity(1):IsFrozen())
+	end)
+
+	
 
 end
