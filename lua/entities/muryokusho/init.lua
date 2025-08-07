@@ -27,6 +27,7 @@ function ENT:Impact(owner, entsIn, dt)
     local sleepMax = mryks_sleep_max:GetFloat()
 
     for _, ent in pairs(entsIn) do  
+        if ent == owner then continue end
         if IsValid(ent) then
             if ent:IsNPC() then
                 ent.mryks_sleepTime = math.Clamp((ent.mryks_sleepTime or 0) + dt * damageBrain, 0, sleepMax)
