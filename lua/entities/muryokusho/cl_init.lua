@@ -15,20 +15,6 @@ function ENT:InitShells()
     }
 end
 
-function ENT:SetScale(scale)
-    self:SetModelScale(scale) -- 确保外壳在可见集里以及能够被搜索到
-    if CLIENT then
-        for state, shell in pairs(self.shells) do
-            if not IsValid(shell.ent) then continue end
-            if state == STATE_RUN then
-                shell.ent:SetModelScale(scale + 1)
-            else
-                shell.ent:SetModelScale(scale) 
-            end
-        end
-    end
-end
-
 local zero = Vector()
 local backgroundMat = Material('mryks/starlitsky')
 local ballMat1 = Material('models/props_pipes/Pipesystem01a_skin3')
@@ -114,7 +100,15 @@ function ENT:InitShellEnts()
 end
 
 function ENT:RunCall(dt)
-    if not self:GetExecute() then return end
+    if self:GetExecute() then 
+        self:SparkSnowEffect(dt)
+        self:SoundEffect(dt, true)
+    else
+        self:SoundEffect(dt, false)
+    end
+end
+
+function ENT:SparkSnowEffect(dt)
     local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
     local period = 0.5
@@ -141,12 +135,26 @@ function ENT:RunCall(dt)
     self.effectTimer = timer
 end
 
+local soundDuration = SoundDuration('mryks/muryokushowork.wav')
+function ENT:SoundEffect(dt, play)
+   -- 音效
+    if play then
+        self.soundTimer = (self.soundTimer or soundDuration) + dt
+        if self.soundTimer >= soundDuration then
+            self.soundTimer = self.soundTimer - soundDuration
+            self:EmitSound('mryks/muryokushowork.wav', 511)
+        end
+    else
+        self:StopSound('mryks/muryokushowork.wav')
+        self.soundTimer = soundDuration
+    end
+end
+
 function ENT:OnRemove()
     self.BaseClass.OnRemove(self)
     if IsValid(self.emitter) then self.emitter:Finish() end
+    self:SoundEffect(0, false)
 end
-
-// ambient/energy/zap2.wav
 
 function mryks_eyefx(action)
     if action then
@@ -160,7 +168,7 @@ function mryks_eyefx(action)
             timeCount = timeCount + FrameTime()
             if timeCount >= period then
                 timeCount = timeCount - period
-                LocalPlayer():EmitSound('ambient/energy/zap'..math.floor(math.random(1, 3.999))..'.wav')
+                LocalPlayer():EmitSound('ambient/energy/zap'..math.floor(math.random(1, 3.8))..'.wav')
             end
         end)
 

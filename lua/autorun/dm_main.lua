@@ -252,6 +252,8 @@ if SERVER then
         ent:Spawn()
 
 		ply:SetNWEntity('domain', ent)
+
+		ent:EmitSound('k_lab.teleport_sound', 511)
     end)
 
 	net.Receive('dm_execute', function(len, ply)
