@@ -6,6 +6,10 @@ if CLIENT then
 	local math = math
 	local bit = bit
 	local table = table
+	local Vector = Vector
+	local Angle = Angle
+	local VectorRand = VectorRand
+	
     local EMITTER = FindMetaTable('CLuaEmitter')
 	local zero = Vector()
 	local zerof = 0.000030517578125
@@ -114,6 +118,39 @@ if CLIENT then
 			end
 		end
 	end
+ 
+	local sv_gravity = GetConVar('sv_gravity')
+	EMITTER.dm_Blast = function(self, mat, vel, center, width, lenth, num, dieTime)
+		-- 在指定球体内创建爆炸
+		-- mat 材质
+		-- vel 速度
+		-- center 中心
+		-- width 宽度
+        -- lenth 长度
+		-- num 数量
+		-- dieTime 消亡时间
+		local gravity = Vector(0, 0, -sv_gravity:GetFloat())
+		for i = 1, num do 
+			local part = self:Add(mat, center) 
+			if part then
+				local dir = VectorRand()
+				part:SetDieTime(dieTime) 
+
+				part:SetStartAlpha(255) 
+				part:SetEndAlpha(0)
+
+				part:SetStartSize(width) 
+				part:SetEndSize(0) 
+
+                part:SetStartLength(lenth)
+				part:SetEndLength(0)
+
+				part:SetGravity(gravity) 
+				part:SetVelocity(dir * vel)	
+			end
+		end
+	end
+
 
 	function dm_GetAABBVertexes(mins, maxs)
     	-- 获取长方体顶点
@@ -365,7 +402,7 @@ if CLIENT then
 	end
 
 
-
+	EMITTER = nil
 end
 
 

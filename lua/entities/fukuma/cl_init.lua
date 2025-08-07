@@ -91,3 +91,16 @@ function ENT:OnRemove()
     if IsValid(self.emitter) then self.emitter:Finish() end
     self:SoundEffect(0, false)
 end
+
+
+hook.Add('CreateClientsideRagdoll', 'fkm_kill_anim', function(entity, ragdoll)
+
+    // for i = 0, ragdoll:GetPhysicsObjectCount() - 1 do
+    //     local phy = ragdoll:GetPhysicsObjectNum(i)
+    //     phy:EnableGravity(false)
+    // end
+
+    // ragdoll:SetRenderMode(RENDERMODE_TRANSCOLOR)
+    // ragdoll:SetColor(Color(0, 0, 0, 0))
+    // ragdoll:fkmd_Play('flesh', true)
+end)

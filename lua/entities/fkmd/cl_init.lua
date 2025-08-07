@@ -2,7 +2,6 @@ include('shared.lua')
 
 local zero = Vector()
 local zerof = 0.0000152587890625
-local white = Color(255, 255, 255, 255)
 
 local render = render
 local math = math
@@ -15,12 +14,28 @@ local Points3DGrahamScan = dm_3DPointsGrahamScan
 local GetAABBVertexes = dm_GetAABBVertexes
 local CurTime = CurTime
 local FrameTime = FrameTime
+local VectorRand = VectorRand
+local SafeRemoveEntity = SafeRemoveEntity
+
+
+ENT.RagdollCount = 0
+ENT.EntityCount = 0
 
 function ENT:Initialize()
     self.bornTime = CurTime()
     self.emitter = ParticleEmitter(self:GetPos())
     self.effectTimer = 0
     self:SetRenderClipPlaneEnabled(true)
+
+    local parent = self:GetParent()
+    if IsValid(parent) then
+        -- 线程安全? Yes
+        if parent:IsRagdoll() then
+            self.RagdollCount = self.RagdollCount + 1
+        else
+            self.EntityCount = self.EntityCount + 1
+        end
+    end
 end
 
 function ENT:UpdateClip(depth)
@@ -82,15 +97,15 @@ function ENT:InitModel(ent)
     if ent:IsRagdoll() then self:AddEffects(EF_BONEMERGE) end
 end
 
-function ENT:InitClip(dir, start, speed, mins, maxs, matType)
+function ENT:InitClip(dir, start, matType, speed, mins, maxs)
     -- 初始化裁剪特效数据
     -- dir 裁剪方向 (非零向量)
     -- start 裁剪开始比例 (0-1)
     -- speed 裁剪速度 (单位/秒)
     -- mins=ModelBounds 模型最小边界 
     -- maxs=... 模型最大边界
-    
-    dir = (dir or -Vector(1, 1, 1)):GetNormalized()
+
+    dir = dir:GetNormalized()
     start = math.Clamp(start or 0, 0, 1)
     speed = math.max(speed or 100, 0)
     if dir:Dot(dir) < zerof then error('dir为零向量') end
@@ -107,7 +122,7 @@ function ENT:InitClip(dir, start, speed, mins, maxs, matType)
     -- 特效数据
     self:SetEffectData(matType)
 
-    -- 生成包络多边形 (用于渲染截面)
+    -- 生成包络多边形 (投影多边形) (用于渲染截面)
     self.bounds2d = SimpleMesh(
         Points3DGrahamScan(
             GetAABBVertexes(mins, maxs),
@@ -117,24 +132,13 @@ function ENT:InitClip(dir, start, speed, mins, maxs, matType)
     )
 end
 
-local materialTypeTable = fkmd_materialTypeTable
-local effectDataTable = fkmd_effectDataTable
-
-function ENT:SetEffectData(matType)
-    for tp, hash in pairs(materialTypeTable) do
-        if hash[matType] and effectDataTable[tp] then
-            self.effectData = effectDataTable[tp]
-            return
-        end
-    end
-    self.effectData = effectDataTable['Metal']
-end
-
 function ENT:ParticleEffect(depth)
+    -- 粒子特效
     local emitter = self.emitter
-    local ref = self.scanData.dir
+    local ref, _ = self:UpdateClip()
     local tris = self.currentSection
     local matp = self.effectData.matp
+    
 
     local numPer = 20 / #tris
     for _, tri in pairs(tris) do 
@@ -164,7 +168,7 @@ function ENT:ParticleEffect(depth)
                 part:SetEndLength(0)
 
                 part:SetGravity(VectorRand() * 100)
-                part:SetVelocity(-ref * (ptype and 300 or 50))
+                part:SetVelocity(ref * (ptype and 300 or 50))
                 part:SetColor(255, 255, 0)
             end
         end
@@ -177,32 +181,32 @@ end
 
 function ENT:SoundEffect()
     local sound = self.effectData.sound
-
     if sound then self:EmitSound(sound) end
 end
 
 function ENT:OnRemove()
     if self.emitter then self.emitter:Finish() end
-end
 
-function ENT:SetVel(vec)
-    self.vel = vec
+    local parent = self:GetParent()
+    if IsValid(parent) then
+        if self.removeParent then 
+            SafeRemoveEntity(self:GetParent()) 
+        end
+
+        if parent:IsRagdoll() then
+            self.RagdollCount = self.RagdollCount - 1
+        else
+            self.EntityCount = self.EntityCount - 1
+        end
+    end
 end
 
 function ENT:Draw() 
     -- source引擎优化好, 经得起这些操作
-    if isvector(self.vel) then
-        self:SetPos(self:GetPos() + self.vel * FrameTime())
-    end
-
-    
-
     local matrix = self:GetWorldTransformMatrix()
     local mat = self.effectData.mat
     local n, _ = self:UpdateClip() // 裁剪特效
 
-
-    
     matrix:SetTranslation(matrix:GetTranslation() + n * (self.currentDepth + 0.5))
 
     render.OverrideDepthEnable(true, true)
@@ -232,10 +236,16 @@ function ENT:Draw()
     render.SetStencilEnable(false)
 end
 
+local materialTypeTable = fkmd_materialTypeTable
+local effectDataTable = fkmd_effectDataTable
 
-
-concommand.Add('fkmd_clear', function()
-    for _, ent in ipairs(ents.FindByClass('fkm_death')) do
-        ent:Remove()
+function ENT:SetEffectData(matType)
+    -- 默认为金属样式特效
+    for tp, hash in pairs(materialTypeTable) do
+        if hash[matType] and effectDataTable[tp] then
+            self.effectData = effectDataTable[tp]
+            return
+        end
     end
-end)
+    self.effectData = effectDataTable['Metal']
+end

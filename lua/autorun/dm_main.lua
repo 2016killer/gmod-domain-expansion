@@ -2,10 +2,10 @@
 -- 创建日期：2025年8月7日
 -- 功能说明：主要逻辑, 玩家与领域实体对象的交互处理
 
-if CLIENT then
-	local FrameTime = FrameTime
-	local RealFrameTime = RealFrameTime
+local FrameTime = FrameTime
+local RealFrameTime = RealFrameTime
 
+if CLIENT then
 	-- 测量
 	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
     local measureState = false
