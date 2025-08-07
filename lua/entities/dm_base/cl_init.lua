@@ -1,5 +1,7 @@
 include('shared.lua')
 
+local FrameTime = FrameTime
+
 function ENT:InitShells()
     -- (特性) 外壳
     -- material 材质

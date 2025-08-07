@@ -4,6 +4,7 @@ ENT.Base = 'dm_base'
 ENT.ClassName = 'fukuma'
 ENT.PrintName = 'Fukuma' 
 ENT.Category = 'Domain'
+ENT.Author = 'Zack'
 ENT.Spawnable = true
 
 CreateConVar('fkm_ka', '2.5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })

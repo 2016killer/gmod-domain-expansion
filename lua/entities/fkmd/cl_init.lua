@@ -13,6 +13,8 @@ local GetAABBScanData = dm_GetAABBScanData
 local SimpleMesh = dm_SimpleMesh
 local Points3DGrahamScan = dm_3DPointsGrahamScan
 local GetAABBVertexes = dm_GetAABBVertexes
+local CurTime = CurTime
+local FrameTime = FrameTime
 
 function ENT:Initialize()
     self.bornTime = CurTime()

@@ -1,4 +1,11 @@
+-- 作者: Zack
+-- 创建日期：2025年8月7日
+-- 功能说明：主要逻辑, 玩家与领域实体对象的交互处理
+
 if CLIENT then
+	local FrameTime = FrameTime
+	local RealFrameTime = RealFrameTime
+
 	-- 测量
 	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
     local measureState = false
@@ -20,7 +27,7 @@ if CLIENT then
 	hook.Add('Think', 'dm_measure', function()
 		-- 测量逻辑
 		if measureState then 
-			local dt = FrameTime() / game.GetTimeScale()
+			local dt = FrameTime()
 			measureResult = measureResult + dt * dm_sensitivity:GetFloat() 
 		end
 	end)
@@ -247,12 +254,5 @@ if SERVER then
 			net.WriteVector(pos)
 		net.Broadcast()
     end)
-
-	concommand.Add('dm_debug_material_type', function(ply)
-		local tr = ply:GetEyeTrace()
-		local ent = tr.Entity
-		local phy = ent:GetPhysicsObject()
-		print(phy:GetMaterial())
-	end)
 
 end

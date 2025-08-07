@@ -1,9 +1,14 @@
+-- 作者: Zack
+-- 创建日期：2025年8月7日
+-- 功能说明：领域基本行为定义
+
 ENT.Type = 'anim'
 ENT.Base = 'base_gmodentity'
 
 ENT.ClassName = 'dm_base'
 ENT.PrintName = 'Domain Base'
 ENT.Category = 'Domain'
+ENT.Author = 'Zack'
 ENT.Spawnable = true
 
 ENT.AllInstance = {}
@@ -16,6 +21,8 @@ local AllInstance = ENT.AllInstance
 local STATE_BORN = ENT.STATE_BORN
 local STATE_RUN = ENT.STATE_RUN
 local STATE_BREAK = ENT.STATE_BREAK
+local CurTime = CurTime
+local FrameTime = FrameTime
 
 function ENT:Born() 
     self:SetState(STATE_BORN) 
@@ -144,7 +151,7 @@ function ENT:Think()
         if self.stateLast ~= STATE_BREAK then 
             self:EmitSound('Glass.Break', 511) 
         end
-        self.radius = math.max(self.radius - 1000 * dt, 0)
+        self.radius = math.max(self.radius - self.expandSpeed * dt, 0)
         self:SetScale(self.radius * 0.166)
         if SERVER and self.radius <= 0 then self:Remove() end
         
@@ -276,6 +283,7 @@ if SERVER then
             end
                 
             -- 获取球体内的实体
+            local isRun = domain:IsRun()
             local execute = domain:GetExecute()
             local sphereEnts = ents.FindInSphere(domain:GetPos(), domain.radius)
             local validEnts = {}
@@ -284,8 +292,8 @@ if SERVER then
             for _, ent in ipairs(sphereEnts) do
                 if ent == domain then continue end
                 -- TODO 用全局哈希可能更快, 但是管理更麻烦
-                if scripted_ents.IsBasedOn(ent:GetClass(), 'dm_base')then
-                    if execute then ent:TakeDamageInfo(cdamageinfo) end
+                if scripted_ents.IsBasedOn(ent:GetClass(), 'dm_base') or ent:GetClass() == 'dm_base' then
+                    if execute and isRun then ent:TakeDamageInfo(cdamageinfo) end
                 else
                     if not IsValid(ent) or ent:IsWorld() or not ent:IsSolid() then 
                         continue 

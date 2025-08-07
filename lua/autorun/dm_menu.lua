@@ -6,7 +6,7 @@ CreateConVar('dm_threat', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCV
 CreateConVar('dm_threat_range', '1000', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_ft', '60', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-CreateConVar('dm_cdamage', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateConVar('dm_cdamage', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_rcost', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateClientConVar('dm_sensitivity', '500', true, false)
 
@@ -26,7 +26,7 @@ if CLIENT then
 				panel:NumSlider(phrase('dm.var.expand_speed'), 'dm_expand_speed', 50, 5000, 0)
 				panel:NumSlider(phrase('dm.var.minr'), 'dm_minr', 0, 500, 0)
 				panel:NumSlider(phrase('dm.var.ft'), 'dm_ft', 0, 360, 0)
-				panel:NumSlider(phrase('dm.var.cdamage'), 'dm_cdamage', 0, 10, 0)
+				panel:NumSlider(phrase('dm.var.cdamage'), 'dm_cdamage', 0, 100, 0)
 				panel:NumSlider(phrase('dm.var.rcost'), 'dm_rcost', 0, 10, 0)
 
 				panel:CheckBox(phrase('dm.var.threat'), 'dm_threat')

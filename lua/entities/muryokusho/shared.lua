@@ -4,6 +4,7 @@ ENT.Base = 'dm_base'
 ENT.ClassName = 'muryokusho'
 ENT.PrintName = 'Muryokusho' 
 ENT.Category = 'Domain'
+ENT.Author = 'Zack'
 ENT.Spawnable = true
 
 

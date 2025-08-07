@@ -5,6 +5,7 @@ local STATE_BORN = BaseClass.STATE_BORN
 local STATE_RUN = BaseClass.STATE_RUN
 local STATE_BREAK = BaseClass.STATE_BREAK
 BaseClass = nil
+local FrameTime = FrameTime
 
 function ENT:InitShells() 
     self.shells = {
