@@ -48,8 +48,8 @@ function ENT:Draw()
     local dt = FrameTime()
     self:SetModelScale(self.radius * 0.166)
     for state, shell in pairs(self.shells) do
-        local fadeInSpeed = math.max(shell.fadeInSpeed or 1, 0)
-        local fadeOutSpeed = math.max(shell.fadeOutSpeed or 1, 0)
+        local fadeInSpeed = math.max(shell.fadeInSpeed or 1, 0.01)
+        local fadeOutSpeed = math.max(shell.fadeOutSpeed or 1, 0.01)
         local progress = shell.progress or 0
         if self:GetState() == state then
             progress = progress + fadeInSpeed * dt

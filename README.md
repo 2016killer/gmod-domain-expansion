@@ -1,6 +1,10 @@
 # GMod 领域插件 - 咒术回战风格战斗系统
 
+# 声明
+
 基于《咒术回战》领域设定启发的GMod战斗插件。
+动作模型来自于插件: https://steamcommunity.com/sharedfiles/filedetails/?id=3413177769
+By Spy Ghost
 
 # 使用方法
 

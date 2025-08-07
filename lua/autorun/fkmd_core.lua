@@ -179,7 +179,7 @@ if CLIENT then
     end)
 
     concommand.Add('fkmd_clear', function()
-        for _, ent in ipairs(ents.FindByClass('fkm_death')) do
+        for _, ent in ipairs(ents.FindByClass('fkmd')) do
             ent:Remove()
         end
     end)

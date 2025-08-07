@@ -9,10 +9,24 @@ local FrameTime = FrameTime
 
 function ENT:InitShells() 
     self.shells = {
-        [STATE_BORN] = {material = 'dm/white'},
+        [STATE_BORN] = {material = 'dm/white', fadeOutSpeed = 0.5},
         [STATE_RUN] = {material = 'dm/black'},
         [STATE_BREAK] = {material = 'dm/black', fadeInSpeed = 5}
     }
+end
+
+function ENT:SetScale(scale)
+    self:SetModelScale(scale) -- 确保外壳在可见集里以及能够被搜索到
+    if CLIENT then
+        for state, shell in pairs(self.shells) do
+            if not IsValid(shell.ent) then continue end
+            if state == STATE_RUN then
+                shell.ent:SetModelScale(scale + 1)
+            else
+                shell.ent:SetModelScale(scale) 
+            end
+        end
+    end
 end
 
 local zero = Vector()

@@ -8,6 +8,9 @@ CreateConVar('dm_ft', '60', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_
 CreateConVar('dm_cdamage', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('dm_rcost', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateClientConVar('dm_sensitivity', '500', true, false)
+CreateClientConVar('dm_start_anim', 'dhblink', true, false)
+CreateClientConVar('dm_execute_anim', 'dhblink', true, false)
+CreateClientConVar('dm_break_anim', 'dhwindblast', true, false)
 
 if CLIENT then
 	local phrase = language.GetPhrase
@@ -32,6 +35,9 @@ if CLIENT then
 				panel:NumSlider(phrase('dm.var.threat_range'), 'dm_threat_range', 0, 5000, 0)
 				panel:Help('---------'..phrase('dm.client')..'---------')
 				panel:NumSlider(phrase('dm.var.sensitivity'), 'dm_sensitivity', 50, 500, 0)
+				panel:TextEntry(phrase('dm.var.start_anim'), 'dm_start_anim')
+				panel:TextEntry(phrase('dm.var.execute_anim'), 'dm_execute_anim')
+				panel:TextEntry(phrase('dm.var.break_anim'), 'dm_break_anim')
 			end
 		)
 	end)

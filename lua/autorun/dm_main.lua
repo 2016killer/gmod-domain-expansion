@@ -99,6 +99,10 @@ if CLIENT then
 	end)
 	
 	local dm_threat = CreateConVar('dm_threat', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+	local dm_start_anim = CreateClientConVar('dm_start_anim', 'dhblink', true, false)
+	local dm_execute_anim = CreateClientConVar('dm_execute_anim', 'dhblink', true, false)
+	local dm_break_anim = CreateClientConVar('dm_break_anim', 'dhwindblast', true, false)
+	
 	local threatNextTime = 0
 	concommand.Add('+dm_start', function(ply, cmd, args)
 		local domain = ply:GetNWEntity('domain')
@@ -106,6 +110,8 @@ if CLIENT then
 			net.Start('dm_execute')
 				net.WriteBool(true)
 			net.SendToServer()
+
+			if VManip then VManip:PlayAnim(dm_start_anim:GetString()) end
 		else
 			if not dm_ExpandCondition(ply, args[1]) then return end
 			measureState = true
@@ -118,6 +124,8 @@ if CLIENT then
 					net.WriteVector(ply:GetPos())
 				net.SendToServer()
 			end
+
+			if VManip then VManip:PlayAnim(dm_execute_anim:GetString()) end
 		end
 	end)
 
@@ -140,6 +148,11 @@ if CLIENT then
 
 		measureState = false
 		measureResult = dm_minr:GetFloat()
+		if VManip then 
+			VManip:QuitHolding(dm_start_anim:GetString())
+			VManip:QuitHolding(dm_execute_anim:GetString())
+			// VManip:QuitHolding(dm_break_anim:GetString()) 
+		end
 	end)
 
 	concommand.Add('dm_break', function(ply, args)
@@ -150,6 +163,16 @@ if CLIENT then
 		if IsValid(domain) then  
 			net.Start('dm_break')
 			net.SendToServer()
+			if VManip then 
+				VManip:QuitHolding(dm_start_anim:GetString())
+				VManip:QuitHolding(dm_execute_anim:GetString())
+				VManip:PlayAnim(dm_break_anim:GetString()) 
+			end
+		else
+			if VManip then 
+				VManip:QuitHolding(dm_start_anim:GetString())
+				VManip:QuitHolding(dm_execute_anim:GetString())
+			end
 		end
 	end)
 

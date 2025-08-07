@@ -1,0 +1,5 @@
+"UnlitGeneric"
+{
+    "$basetexture" "fkmd/vtf/alienfleshp" 
+    "$translucent" "1"  
+}

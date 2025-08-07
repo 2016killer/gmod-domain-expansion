@@ -93,36 +93,36 @@ if CLIENT then
     -- 特效表
     fkmd_effectDataTable = {
         Metal = {
-            mat = Material('fkm_death/metal'),
-            matp = 'fkm_death/metalp',
+            mat = Material('fkmd/metal'),
+            matp = 'fkmd/metalp',
             sound = 'SolidMetal.BulletImpact'
         },
 
         Wood = {
-            mat = Material('fkm_death/wood'),
-            matp = 'fkm_death/woodp',
+            mat = Material('fkmd/wood'),
+            matp = 'fkmd/woodp',
             sound = 'Wood.Break'
         },
 
         Rock = {
-            matp = 'fkm_death/rockp',
+            matp = 'fkmd/rockp',
             sound = 'Weapon_Crowbar.Melee_Hit'
         },
 
         Glass = {
-            matp = 'fkm_death/glassp',
+            matp = 'fkmd/glassp',
             sound = 'Glass.BulletImpact'
         },
 
         Alienflesh = {
-            mat = Material('fkm_death/alienflesh'),
-            matp = 'fkm_death/alienfleshp',
+            mat = Material('fkmd/alienflesh'),
+            matp = 'fkmd/alienfleshp',
             sound = 'Flesh.Break'
         },
 
         Flesh = {
-            mat = Material('fkm_death/flesh'),
-            matp = 'fkm_death/fleshp',
+            mat = Material('fkmd/flesh'),
+            matp = 'fkmd/fleshp',
             sound = 'Flesh.Break'
         }
     }
