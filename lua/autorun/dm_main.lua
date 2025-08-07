@@ -115,17 +115,19 @@ if CLIENT then
 	end)
 
 	concommand.Add('-dm_start', function(ply, cmd, args)
-		local domain = ply:GetNWEntity('domain')
-		if IsValid(domain) then
-			net.Start('dm_execute')
-				net.WriteBool(false)
-			net.SendToServer()
-		else
-			if measureState then
-				net.Start('dm_expand')
-					net.WriteString(args[1])
-					net.WriteFloat(measureResult)
+		if not gui.IsGameUIVisible() then
+			local domain = ply:GetNWEntity('domain')
+			if IsValid(domain) then
+				net.Start('dm_execute')
+					net.WriteBool(false)
 				net.SendToServer()
+			else
+				if measureState then
+					net.Start('dm_expand')
+						net.WriteString(args[1])
+						net.WriteFloat(measureResult)
+					net.SendToServer()
+				end
 			end
 		end
 
@@ -198,6 +200,10 @@ if CLIENT then
 
 	function dm_GetMeasureResult()
 		return measureResult
+	end
+
+	function dm_GetMeasureState()
+		return measureState
 	end
 
 end

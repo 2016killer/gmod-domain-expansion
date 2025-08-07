@@ -9,7 +9,7 @@ function ENT:Cost(radius, dt)
     return fkm_ka:GetFloat() * radius * 0.00390625 * dt, fkm_kh:GetFloat() * dt
 end
 
-local fkm_damage = CreateConVar('fkm_damage', '100', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local fkm_damage = CreateConVar('fkm_damage', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 function ENT:Impact(owner, entsIn, dt)
     local owner = self:GetOwner()
     local force = VectorRand() * 500
@@ -20,6 +20,7 @@ function ENT:Impact(owner, entsIn, dt)
     dmgbullet:SetDamageForce(force) 
     dmgbullet:SetAttacker(owner) 
     dmgbullet:SetInflictor(self) 
+    dmgbullet:SetDamagePosition(self:GetPos())
 
     for _, ent in pairs(entsIn) do  
         if IsValid(ent) and ent ~=owner then
@@ -27,7 +28,5 @@ function ENT:Impact(owner, entsIn, dt)
         end
     end
 end
-
-
 
 

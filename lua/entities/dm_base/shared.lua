@@ -1,7 +1,7 @@
 ENT.Type = 'anim'
 ENT.Base = 'base_gmodentity'
 
-ENT.ClassName = 'domain_base'
+ENT.ClassName = 'dm_base'
 ENT.PrintName = 'Domain Base'
 ENT.Category = 'Domain'
 ENT.Spawnable = true
@@ -57,8 +57,8 @@ end
 
 function ENT:Armor() return self:GetArmor() end
 
-
-
+local dm_expand_speed = CreateConVar('dm_expand_speed', '500', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+local dm_rcost = CreateConVar('dm_rcost', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 function ENT:Initialize() 
     if CLIENT then 
         self:InitShells()
@@ -77,7 +77,9 @@ function ENT:Initialize()
     end
 
     self.radius = 0
-    self.expandSpeed = GetConVar('dm_expand_speed'):GetFloat() -- 展开速度
+    self.expandSpeed = dm_expand_speed:GetFloat() -- 展开速度
+    self.restingCost = dm_rcost:GetFloat() -- 休息成本
+
 
     self:SetModel('models/dav0r/hoverball.mdl')
     self:DrawShadow(false)
@@ -101,7 +103,7 @@ local function BreakCondition(domain)
     end
 end
 
-local dm_rcost = CreateConVar('dm_rcost', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+
 function ENT:Think()
     local state = self:GetState()
     local tRadius = self:GetTRadius()
@@ -135,14 +137,17 @@ function ENT:Think()
             else
                 costArmor, costHealth = 0, 0
             end
-            self:CostAcc(costArmor + dm_rcost:GetFloat() * dt, costHealth)
+            self:CostAcc(costArmor + self.restingCost * dt, costHealth)
         end
         self:RunCall(dt)
     elseif state == STATE_BREAK then 
+        if self.stateLast ~= STATE_BREAK then 
+            self:EmitSound('Glass.Break', 511) 
+        end
         self.radius = math.max(self.radius - 1000 * dt, 0)
         self:SetScale(self.radius * 0.166)
         if SERVER and self.radius <= 0 then self:Remove() end
-
+        
         self:BreakCall(dt)
     end
 
@@ -271,6 +276,7 @@ if SERVER then
             end
                 
             -- 获取球体内的实体
+            local execute = domain:GetExecute()
             local sphereEnts = ents.FindInSphere(domain:GetPos(), domain.radius)
             local validEnts = {}
             
@@ -278,8 +284,8 @@ if SERVER then
             for _, ent in ipairs(sphereEnts) do
                 if ent == domain then continue end
                 -- TODO 用全局哈希可能更快, 但是管理更麻烦
-                if scripted_ents.IsBasedOn(ent:GetClass(), 'domain_base')then
-                    ent:TakeDamageInfo(cdamageinfo)
+                if scripted_ents.IsBasedOn(ent:GetClass(), 'dm_base')then
+                    if execute then ent:TakeDamageInfo(cdamageinfo) end
                 else
                     if not IsValid(ent) or ent:IsWorld() or not ent:IsSolid() then 
                         continue 

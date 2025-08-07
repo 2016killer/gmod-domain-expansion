@@ -1,7 +1,7 @@
 ENT.Type = 'anim'
 ENT.Base = 'base_gmodentity'
 
-ENT.ClassName = 'fkm_death'
+ENT.ClassName = 'fkmd'
 ENT.PrintName = 'Fkm Death' 
 ENT.Category = 'Domain'
 ENT.Spawnable = false

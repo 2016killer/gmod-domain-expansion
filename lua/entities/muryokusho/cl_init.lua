@@ -140,7 +140,7 @@ function mryks_eyefx(action)
         end)
 
         local period = 0.5
-        local timeCount = 0
+        local timeCount = 0.5
         hook.Add('Think', 'mryks_eyefx', function()
             timeCount = timeCount + FrameTime()
             if timeCount >= period then

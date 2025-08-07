@@ -23,7 +23,7 @@ if CLIENT then
 				panel:Help('---------'..phrase('dm.server')..'---------')
 				panel:NumSlider(phrase('dm.var.armor_condition'), 'dm_armor_condition', 0, 200, 0)
 				panel:NumSlider(phrase('dm.var.health_condition'), 'dm_health_condition', 0, 200, 0)
-				panel:NumSlider(phrase('dm.var.expand_speed'), 'dm_expand_speed', 50, 2000, 3)
+				panel:NumSlider(phrase('dm.var.expand_speed'), 'dm_expand_speed', 50, 5000, 0)
 				panel:NumSlider(phrase('dm.var.minr'), 'dm_minr', 0, 500, 0)
 				panel:NumSlider(phrase('dm.var.ft'), 'dm_ft', 0, 360, 0)
 				panel:NumSlider(phrase('dm.var.cdamage'), 'dm_cdamage', 0, 10, 0)

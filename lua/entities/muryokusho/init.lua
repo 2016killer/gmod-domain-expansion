@@ -20,6 +20,7 @@ function ENT:Impact(owner, entsIn, dt)
     dmginfo:SetAttacker(owner) 
     dmginfo:SetInflictor(self) 
     dmginfo:SetDamageType(DMG_POISON)
+    dmginfo:SetDamagePosition(self:GetPos())
 
     local damageBrain = mryks_damage_brain:GetFloat()
     local sleepMax = mryks_sleep_max:GetFloat()
