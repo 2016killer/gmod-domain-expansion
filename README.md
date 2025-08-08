@@ -6,6 +6,10 @@
 动作模型来自于插件: https://steamcommunity.com/sharedfiles/filedetails/?id=3413177769
 By Spy Ghost
 
+![9](img9.gif)
+![10](img10.gif)
+![11](img11.gif)
+
 # 使用方法
 
 ## 基本绑定设置
@@ -126,9 +130,7 @@ By Spy Ghost
   - 内部空间采用独立相机绘制宇宙风格天空盒
   - 伴随旋转星球模型与模拟失重效果的闪光粒子
   - 通过空间转换感强化"无量空处"的概念设定
-![9](img9.gif)
-![10](img10.gif)
-![11](img11.gif)
+
 ![8](img8.jpg)
 ![7](img7.jpg)
 ![1](img1.jpg)
