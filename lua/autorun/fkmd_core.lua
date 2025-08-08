@@ -32,19 +32,23 @@ if SERVER then
                 validlist[#validlist + 1] = {ent, matType}
             end
         end
+ 
+        if #validlist > 0 then
+            -- 广播标记
+            net.Start('fkmd_play')
+                net.WriteTable(validlist)
+                net.WriteFloat(duration)
+            net.Broadcast()
 
-        -- 广播标记
-        net.Start('fkmd_play')
-            net.WriteTable(validlist)
-            net.WriteFloat(duration)
-        net.Broadcast()
-
-        timer.Simple(duration, function()
             -- 启动延时删除
-            for _, ent in pairs(validlist) do
-                if IsValid(ent) then SafeRemoveEntity(ent) end
-            end
-        end)
+            timer.Simple(duration, function()      
+                for _, data in pairs(validlist) do
+                    if IsValid(data[1]) then 
+                        SafeRemoveEntity(data[1]) 
+                    end
+                end
+            end)
+        end
     end
 
 end
