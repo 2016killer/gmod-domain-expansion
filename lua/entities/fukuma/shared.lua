@@ -26,7 +26,9 @@ if CLIENT then
             phrase('fkm.menu.name'), '', '', 
             function(panel)
                 panel:Clear()
-   
+                local ctrl = vgui.Create('ControlPresets', panel)
+			    ctrl:SetPreset('fkm_menu')
+
                 panel:NumSlider(phrase('fkm.var.ka'), 'fkm_ka', 0, 50, 0)
                 panel:Help(phrase('fkm.help.ka'))
                 panel:NumSlider(phrase('fkm.var.kh'), 'fkm_kh', 0, 50, 0)

@@ -27,7 +27,9 @@ if CLIENT then
             phrase('mryks.menu.name'), '', '', 
             function(panel)
                 panel:Clear()
-   
+                local ctrl = vgui.Create('ControlPresets', panel)
+			    ctrl:SetPreset('mryks_menu')
+
                 panel:NumSlider(phrase('mryks.var.ka'), 'mryks_ka', 0, 50, 0)
                 panel:Help(phrase('mryks.help.ka'))
                 panel:NumSlider(phrase('mryks.var.damage'), 'mryks_damage', 0, 5000, 0)

@@ -20,6 +20,9 @@ if CLIENT then
             phrase('dm.menu.health.name'), '', '', 
             function(panel)
                 panel:Clear()
+                local ctrl = vgui.Create('ControlPresets', panel)
+			    ctrl:SetPreset('dm_health_menu')
+
                 panel:NumSlider(phrase('dm.var.health_ka'), 'dm_health_ka', 0, 10, 0)
                 panel:Help(phrase('dm.help.health_ka'))
                 panel:NumSlider(phrase('dm.var.health_damage'), 'dm_health_damage', 0, 100, 0)

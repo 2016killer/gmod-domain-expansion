@@ -19,8 +19,8 @@ function ENT:Impact(owner, entsIn, dt)
     local owner = self:GetOwner()
 
     local force = VectorRand() * 500
-    -- 至少间隔1s, 对prop造成伤害, 同时加入动画队列 (一批20个)
-    local propDmg, propRemoveCollect
+    -- 至少间隔1s, 对一批(40个)prop造成伤害, 同时加入一批(20个)到动画队列
+    local propDmg, propDmgCount, propRemoveCollect
     self.propDmgTimer = (self.propDmgTimer or 0.5) + dt
     if self.propDmgTimer > 1 then 
         self.propDmgTimer = 0 
@@ -32,6 +32,7 @@ function ENT:Impact(owner, entsIn, dt)
         propDmg:SetInflictor(self) 
         propDmg:SetDamagePosition(self:GetPos())
 
+        propDmgCount = 0
         propRemoveCollect = {}
     end
     
@@ -49,7 +50,11 @@ function ENT:Impact(owner, entsIn, dt)
             if ent:IsPlayer() or ent:IsNPC() then
                 ent:TakeDamageInfo(dmgbullet)
             elseif propDmg then
-                ent:TakeDamageInfo(propDmg)
+                if propDmgCount < 40 then
+                    propDmgCount = propDmgCount + 1
+                    ent:TakeDamageInfo(propDmg)
+                end
+
                 if not ent.fkm_aflag and #propRemoveCollect < 20 then
                     ent.fkm_aflag = true
                     propRemoveCollect[#propRemoveCollect + 1] = ent

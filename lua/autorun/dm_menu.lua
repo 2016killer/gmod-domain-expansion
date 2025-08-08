@@ -22,6 +22,9 @@ if CLIENT then
 			phrase('dm.menu.name'), '', '', 
 			function(panel)
 				panel:Clear()
+                local ctrl = vgui.Create('ControlPresets', panel)
+			    ctrl:SetPreset('dm_menu_base')
+
 				panel:Help('---------'..phrase('dm.server')..'---------')
 				panel:NumSlider(phrase('dm.var.armor_condition'), 'dm_armor_condition', 0, 200, 0)
 				panel:NumSlider(phrase('dm.var.health_condition'), 'dm_health_condition', 0, 200, 0)
