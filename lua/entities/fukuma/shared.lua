@@ -12,6 +12,8 @@ ENT.AllInstance = {} -- 并非实时更新，仅用于播放动画
 CreateConVar('fkm_ka', '2.5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('fkm_kh', '5', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('fkm_damage', '20', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateClientConVar('fkm_particle_level', '0.5', true, false)
+
 local fkm_expand_speed = CreateConVar('fkm_expand_speed', '700', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 if CLIENT then
@@ -33,6 +35,7 @@ if CLIENT then
                 panel:Help(phrase('fkm.help.damage'))
                 panel:NumSlider(phrase('fkm.var.expand_speed'), 'fkm_expand_speed', 0, 5000, 0)
                 panel:Help(phrase('fkm.help.expand_speed'))
+                panel:NumSlider(phrase('fkm.var.particle_level'), 'fkm_particle_level', 0, 1, 3)
 
             end
         )

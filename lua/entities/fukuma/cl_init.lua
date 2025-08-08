@@ -24,12 +24,13 @@ function ENT:RunCall(dt)
     end
 end
 
+local fkm_particle_level = CreateClientConVar('fkm_particle_level', '0.5', true, false)
 function ENT:LaserStormEffect(dt)
    -- 激光雨特效
     local period = 0.05
     local radius = self.radius
     local center = self:GetPos()
-    local unitLen = math.max(1, radius * 0.2)
+    local unitLen = math.max(1, radius * math.Clamp(1 - fkm_particle_level:GetFloat(), 0.1, 1))
     local num = 40
     local width = 30
     local dieTime = 0.1

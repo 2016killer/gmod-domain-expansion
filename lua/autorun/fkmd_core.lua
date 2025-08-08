@@ -8,37 +8,14 @@ local transparent = Color(0, 0, 0, 0)
 if SERVER then
     local fkmd_nogravity = CreateConVar('fkmd_nogravity', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
-    local entQueue = {}
-    function fkmd_PlayInServer(ent, duration)
-        -- 将实体加入动画队列
-        -- ent 目标
-        -- duration 动画时长 
-        if ent.fkmd_flag or ent:IsWorld() then return end
-        ent.fkmd_flag = true
-
-        entQueue[#entQueue + 1] = {
-            ent = ent,
-            duration = duration
-        }
-    end
-
-    local timeCount, period, batch = 0, 1, 20
-    hook.Add('Think', 'fkmd_ent_remove', function()
-        -- 批处理动画队列
-        -- 每秒处理20个实体
-        -- 标记实体开启动画, 并启动延时删除
-        timeCount = timeCount + FrameTime()
-        if timeCount < period then return end
-        timeCount = 0
-
-        local netData = {}
-        for i = #entQueue, math.max(#entQueue - batch, 1), -1 do
-            local data = entQueue[i]
-            local ent = data.ent
-
+    function fkmd_PlayInServer(entlist, duration)
+        -- 广播实体组动画, 并启动延时删除 
+        local validlist = {}
+        for _, ent in pairs(entlist) do
             if IsValid(ent) then
-                local matType = ent:GetPhysicsObject():GetMaterial()
-
+                local phy = ent:GetPhysicsObject()
+                local matType = IsValid(phy) and phy:GetMaterial() or 'metal'
+                
                 -- 关闭重力
                 if fkmd_nogravity:GetBool() then 
                     for i = 0, ent:GetPhysicsObjectCount() - 1 do
@@ -52,26 +29,24 @@ if SERVER then
                 ent:SetRenderMode(RENDERMODE_TRANSCOLOR)
                 ent:SetColor(transparent)
 
-                -- 启动延时删除
-                SafeRemoveEntityDelayed(ent, data.duration)
-                netData[#netData + 1] = {ent, matType, data.duration}
-                table.remove(entQueue, i)
-            else
-                table.remove(entQueue, i)
+                validlist[#validlist + 1] = {ent, matType}
             end
         end
 
         -- 广播标记
         net.Start('fkmd_play')
-            net.WriteTable(netData)
+            net.WriteTable(validlist)
+            net.WriteFloat(duration)
         net.Broadcast()
-    end)
 
+        timer.Simple(duration, function()
+            -- 启动延时删除
+            for _, ent in pairs(validlist) do
+                if IsValid(ent) then SafeRemoveEntity(ent) end
+            end
+        end)
+    end
 
-    concommand.Add('fkmd_debug_play_sv', function(ply)
-        local ent = ply:GetEyeTrace().Entity
-        fkmd_PlayInServer(ent, 1)
-    end)
 end
 
 if CLIENT then  
@@ -122,9 +97,11 @@ if CLIENT then
                 )
 
                 emitter:Finish()
-
                 self:EmitSound(effectData.sound)
+                if remove then SafeRemoveEntity(self) end
             else
+                duration = duration or 1
+
                 self:SetRenderMode(RENDERMODE_TRANSCOLOR)
                 self:SetColor(transparent)
 
@@ -134,10 +111,6 @@ if CLIENT then
                         phy:EnableGravity(false)
                     end
                 end
-
-                duration = duration or 1
-                self:SetRenderMode(RENDERMODE_TRANSCOLOR)
-                self:SetColor(Color(0, 0, 0, 0))
 
                 local dir = VectorRand()
                 local fkmdEnt1 = ents.CreateClientside('fkmd')
@@ -160,22 +133,17 @@ if CLIENT then
 
     net.Receive('fkmd_play', function()
         local netData = net.ReadTable()
-        
+        local duration = net.ReadFloat()
+
         for _, data in ipairs(netData) do
             local ent = data[1]
             local matType = data[2]
-            local duration = data[3]
 
             -- 延迟可能导致的同步问题
             if IsValid(ent) then
                 ent:fkmd_Play(matType, false, duration)
             end
         end
-    end)
-
-    concommand.Add('fkmd_debug_play', function()
-        local ent = LocalPlayer():GetEyeTrace().Entity
-        ent:fkmd_Play('Metal')
     end)
 
     concommand.Add('fkmd_clear', function()

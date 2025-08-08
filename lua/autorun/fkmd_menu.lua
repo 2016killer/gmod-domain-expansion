@@ -1,6 +1,7 @@
 CreateConVar('fkmd_nogravity', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateClientConVar('fkmd_ragdoll_limit', '20', true, false)
 CreateClientConVar('fkmd_ent_limit', '20', true, false)
+CreateClientConVar('fkmd_particle_level', '0.5', true, false)
 
 if CLIENT then
 	local phrase = language.GetPhrase
@@ -14,7 +15,8 @@ if CLIENT then
 				panel:CheckBox(phrase('fkmd.var.nogravity'), 'fkmd_nogravity')
 				panel:NumSlider(phrase('fkmd.var.ragdoll_limit'), 'fkmd_ragdoll_limit', 0, 100, 0)
                 panel:NumSlider(phrase('fkmd.var.ent_limit'), 'fkmd_ent_limit', 0, 100, 0)
-            end
+                panel:NumSlider(phrase('fkmd.var.particle_level'), 'fkmd_particle_level', 0, 1, 3)
+			end
 		)
 	end)
 end

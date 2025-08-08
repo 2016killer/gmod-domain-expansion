@@ -17,8 +17,25 @@ local KillAnimPlayInServer = fkmd_PlayInServer
 
 function ENT:Impact(owner, entsIn, dt)
     local owner = self:GetOwner()
-    local force = VectorRand() * 500
 
+    local force = VectorRand() * 500
+    -- 至少间隔1s, 对prop造成伤害, 同时加入动画队列 (一批20个)
+    local propDmg, propRemoveCollect
+    self.propDmgTimer = (self.propDmgTimer or 0.5) + dt
+    if self.propDmgTimer > 1 then 
+        self.propDmgTimer = 0 
+        propDmg = DamageInfo()
+        propDmg:SetDamage(fkm_damage:GetFloat())
+        propDmg:SetDamageType(DMG_BULLET)
+        propDmg:SetDamageForce(force) 
+        propDmg:SetAttacker(owner) 
+        propDmg:SetInflictor(self) 
+        propDmg:SetDamagePosition(self:GetPos())
+
+        propRemoveCollect = {}
+    end
+    
+    
     local dmgbullet = DamageInfo()
     dmgbullet:SetDamage(fkm_damage:GetFloat() * dt)
     dmgbullet:SetDamageType(DMG_BULLET)
@@ -29,12 +46,20 @@ function ENT:Impact(owner, entsIn, dt)
 
     for _, ent in pairs(entsIn) do  
         if IsValid(ent) and ent ~=owner then
-            ent:TakeDamageInfo(dmgbullet)
+            if ent:IsPlayer() or ent:IsNPC() then
+                ent:TakeDamageInfo(dmgbullet)
+            elseif propDmg then
+                ent:TakeDamageInfo(propDmg)
+                if not ent.fkm_aflag and #propRemoveCollect < 20 then
+                    ent.fkm_aflag = true
+                    propRemoveCollect[#propRemoveCollect + 1] = ent
+                end
+            end
         end
-        
-        if not ent:IsPlayer() and not ent:IsNPC() then
-            KillAnimPlayInServer(ent, 0.5)
-        end
+    end
+
+    if propRemoveCollect then
+        KillAnimPlayInServer(propRemoveCollect, 0.5)
     end
 end
 

@@ -89,7 +89,7 @@ function ENT:InitModel(ent)
     self:SetModel(ent:GetModel())
     self:SetMaterial(ent:GetMaterial())
     // self:SetColor(ent:GetColor())
-    self:SetModelScale(ent:GetModelScale())
+    self:SetModelScale(ent:GetModelScale() or 1)
 
     self:SetPos(pos)
     self:SetAngles(ang)
@@ -132,6 +132,7 @@ function ENT:InitClip(dir, start, matType, speed, mins, maxs)
     )
 end
 
+local fkmd_particle_level = CreateClientConVar('fkmd_particle_level', '0.5', true, false)
 function ENT:ParticleEffect(depth)
     -- 粒子特效
     local emitter = self.emitter
@@ -139,8 +140,8 @@ function ENT:ParticleEffect(depth)
     local tris = self.currentSection
     local matp = self.effectData.matp
     
-
-    local numPer = 20 / #tris
+    
+    local numPer = 40 * math.Clamp(fkmd_particle_level:GetFloat(), 0, 1) / #tris
     for _, tri in pairs(tris) do 
         local p1 = tri[1]
         local l1 = tri[2] - p1

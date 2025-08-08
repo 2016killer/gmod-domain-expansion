@@ -108,6 +108,7 @@ function ENT:RunCall(dt)
     end
 end
 
+local mryks_particle_level = CreateClientConVar('mryks_particle_level', '0.5', true, false)
 function ENT:SparkSnowEffect(dt)
     local timer = (self.effectTimer or 0) + dt
     local emitter = IsValid(self.emitter) and self.emitter or ParticleEmitter(self:GetPos())
@@ -117,7 +118,7 @@ function ENT:SparkSnowEffect(dt)
         timer = timer - period
         local radius = self.radius
         local center = self:GetPos()
-        local num = math.min(200, math.max(1, math.floor(radius * 0.25)))
+        local num = math.Clamp(radius * 0.25, 1, 200 * mryks_particle_level:GetFloat())
         local dieTime = 1
 
         emitter:dm_SphereSnow(

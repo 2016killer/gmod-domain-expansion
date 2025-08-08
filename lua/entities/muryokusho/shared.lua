@@ -12,6 +12,8 @@ CreateConVar('mryks_ka', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVA
 CreateConVar('mryks_damage', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('mryks_damage_brain', '10', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 CreateConVar('mryks_sleep_max', '60', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+CreateClientConVar('mryks_particle_level', '0.5', true, false)
+
 local mryks_expand_speed = CreateConVar('mryks_expand_speed', '2000', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
 
 
@@ -35,6 +37,8 @@ if CLIENT then
                 panel:NumSlider(phrase('mryks.var.sleep_max'), 'mryks_sleep_max', 0, 120, 0)
                 panel:NumSlider(phrase('mryks.var.expand_speed'), 'mryks_expand_speed', 0, 5000, 0)
                 panel:Help(phrase('mryks.help.expand_speed'))
+                panel:NumSlider(phrase('mryks.var.particle_level'), 'mryks_particle_level', 0, 1, 3)
+
             end
         )
     end)
