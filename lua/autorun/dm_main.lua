@@ -153,6 +153,10 @@ if CLIENT then
 			VManip:QuitHolding(dm_execute_anim:GetString())
 			// VManip:QuitHolding(dm_break_anim:GetString()) 
 		end
+
+		local measureEnts = getMeasureEnts()
+		measureEnts[1]:SetModelScale(0)
+		measureEnts[2]:SetModelScale(0)
 	end)
 
 	concommand.Add('dm_break', function(ply, args)
