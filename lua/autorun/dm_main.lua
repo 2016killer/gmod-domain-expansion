@@ -111,7 +111,7 @@ if CLIENT then
 				net.WriteBool(true)
 			net.SendToServer()
 
-			if VManip then VManip:PlayAnim(dm_start_anim:GetString()) end
+			if VManip then VManip:PlayAnim(dm_execute_anim:GetString()) end
 		else
 			if not dm_ExpandCondition(ply, args[1]) then return end
 			measureState = true
@@ -125,7 +125,7 @@ if CLIENT then
 				net.SendToServer()
 			end
 
-			if VManip then VManip:PlayAnim(dm_execute_anim:GetString()) end
+			if VManip then VManip:PlayAnim(dm_start_anim:GetString()) end
 		end
 	end)
 

@@ -29,6 +29,12 @@ if CLIENT then
                 panel:Clear()
                 local ctrl = vgui.Create('ControlPresets', panel)
 			    ctrl:SetPreset('mryks_menu')
+                    ctrl:AddConVar('mryks_ka')
+                    ctrl:AddConVar('mryks_damage')
+                    ctrl:AddConVar('mryks_damage_brain')
+                    ctrl:AddConVar('mryks_sleep_max')
+                    ctrl:AddConVar('mryks_expand_speed')
+                panel:AddPanel(ctrl)
 
                 panel:NumSlider(phrase('mryks.var.ka'), 'mryks_ka', 0, 50, 0)
                 panel:Help(phrase('mryks.help.ka'))

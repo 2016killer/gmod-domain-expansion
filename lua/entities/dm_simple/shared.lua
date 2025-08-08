@@ -22,7 +22,10 @@ if CLIENT then
                 panel:Clear()
                 local ctrl = vgui.Create('ControlPresets', panel)
 			    ctrl:SetPreset('dm_simple_menu')
-
+                    ctrl:AddConVar('dm_simple_rcost')
+                    ctrl:AddConVar('dm_simple_radius')
+                panel:AddPanel(ctrl)
+                
                 panel:NumSlider(phrase('dm.var.simple_rcost'), 'dm_simple_rcost', 0, 10, 0)
                 panel:NumSlider(phrase('dm.var.simple_radius'), 'dm_simple_radius', 0, 1000, 0)
             end

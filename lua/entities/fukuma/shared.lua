@@ -28,7 +28,12 @@ if CLIENT then
                 panel:Clear()
                 local ctrl = vgui.Create('ControlPresets', panel)
 			    ctrl:SetPreset('fkm_menu')
-
+                    ctrl:AddConVar('fkm_ka')
+                    ctrl:AddConVar('fkm_kh')
+                    ctrl:AddConVar('fkm_damage')
+                    ctrl:AddConVar('fkm_expand_speed')
+                panel:AddPanel(ctrl)
+                
                 panel:NumSlider(phrase('fkm.var.ka'), 'fkm_ka', 0, 50, 0)
                 panel:Help(phrase('fkm.help.ka'))
                 panel:NumSlider(phrase('fkm.var.kh'), 'fkm_kh', 0, 50, 0)

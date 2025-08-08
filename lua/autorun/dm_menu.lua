@@ -24,7 +24,17 @@ if CLIENT then
 				panel:Clear()
                 local ctrl = vgui.Create('ControlPresets', panel)
 			    ctrl:SetPreset('dm_menu_base')
-
+				    ctrl:AddConVar('dm_armor_condition')
+                    ctrl:AddConVar('dm_health_condition')
+                    ctrl:AddConVar('dm_expand_speed')
+                    ctrl:AddConVar('dm_threat')
+                    ctrl:AddConVar('dm_threat_range')
+					ctrl:AddConVar('dm_minr')
+					ctrl:AddConVar('dm_ft')
+					ctrl:AddConVar('dm_cdamage')
+					ctrl:AddConVar('dm_rcost')
+				panel:AddPanel(ctrl)
+				
 				panel:Help('---------'..phrase('dm.server')..'---------')
 				panel:NumSlider(phrase('dm.var.armor_condition'), 'dm_armor_condition', 0, 200, 0)
 				panel:NumSlider(phrase('dm.var.health_condition'), 'dm_health_condition', 0, 200, 0)
