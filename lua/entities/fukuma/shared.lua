@@ -84,7 +84,7 @@ if CLIENT then
     end)
 end
 
-if SERVER then 
+if SERVER and game.SinglePlayer() then 
     local KillAnimPlayInServer = fkmd_PlayInServer
     hook.Add('CreateEntityRagdoll', 'fkm_kill_anim', function(entity, ragdoll)
         for i = #AllInstance, 1, -1 do
