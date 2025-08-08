@@ -17,6 +17,7 @@ end
 function ENT:RunCall(dt)
     if self:GetExecute() then 
         self:LaserStormEffect(dt)
+        self:flashEffect(dt)
         self:SoundEffect(dt, true)
         self:ShellRotate(dt)
     else
@@ -27,19 +28,20 @@ end
 local fkm_particle_level = CreateClientConVar('fkm_particle_level', '0.5', true, false)
 function ENT:LaserStormEffect(dt)
    -- 激光雨特效
-    local period = 0.05
-    local radius = self.radius
-    local center = self:GetPos()
-    local unitLen = math.max(1, radius * math.Clamp(1 - fkm_particle_level:GetFloat(), 0.1, 1))
-    local num = 40
-    local width = 30
-    local dieTime = 0.1
+   local period = 0.05
     self.effectTimer = (self.effectTimer or 0) + dt
-    self.emitter = self.emitter or ParticleEmitter(center)
-    local emitter = self.emitter
-
     if self.effectTimer >= period then
         self.effectTimer = self.effectTimer - period
+
+        local radius = self.radius
+        local center = self:GetPos()
+        local unitLen = math.max(1, radius * math.Clamp(1 - fkm_particle_level:GetFloat(), 0.1, 1))
+        local num = 40
+        local width = 30
+        local dieTime = 0.1
+
+        self.emitter = self.emitter or ParticleEmitter(center)
+        local emitter = self.emitter
 
         for i = 1, num do
             local dirSample = AngleRand()
@@ -63,6 +65,34 @@ function ENT:LaserStormEffect(dt)
                     dieTime
             )
 
+        end
+    end
+end
+
+local fkm_flash = CreateClientConVar('fkm_flash', '1', true, false)
+function ENT:flashEffect(dt)
+   -- 闪光特效
+    local period = 1
+
+    self.flashTimer = (self.flashTimer or 0.5) + dt
+    if self.flashTimer >= period then
+        self.flashTimer = self.flashTimer - period
+        if not fkm_flash:GetBool() then return end
+
+        local radius = self.radius * 4
+        local center = self:GetPos()
+        local dieTime = 1
+
+        local dlight = DynamicLight(self:EntIndex())
+        if dlight then
+            dlight.pos = center
+            dlight.r = 255
+            dlight.g = 255
+            dlight.b = 255
+            dlight.brightness = 2
+            dlight.decay = 1000
+            dlight.size = radius
+            dlight.dietime = CurTime() + dieTime
         end
     end
 end
