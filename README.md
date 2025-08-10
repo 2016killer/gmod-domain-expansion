@@ -1,4 +1,5 @@
 # GMod 领域插件 - 咒术回战风格战斗系统
+创意工坊链接:https://steamcommunity.com/sharedfiles/filedetails/?id=3544561355
 
 # 声明
 
