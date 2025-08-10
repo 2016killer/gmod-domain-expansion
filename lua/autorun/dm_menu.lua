@@ -12,6 +12,8 @@ CreateClientConVar('dm_start_anim', 'dhblink', true, false)
 CreateClientConVar('dm_execute_anim', 'dhblink', true, false)
 CreateClientConVar('dm_break_anim', 'dhwindblast', true, false)
 
+local version = '1.0.2'
+
 if CLIENT then
 	local phrase = language.GetPhrase
 
@@ -53,6 +55,10 @@ if CLIENT then
 				panel:TextEntry(phrase('dm.var.break_anim'), 'dm_break_anim')
 			end
 		)
+	end)
+
+	concommand.Add('dm_version', function()
+		print('版本:'..version)
 	end)
 end
 

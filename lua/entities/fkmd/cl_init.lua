@@ -18,23 +18,23 @@ local VectorRand = VectorRand
 local SafeRemoveEntity = SafeRemoveEntity
 
 
-ENT.RagdollCount = 0
-ENT.EntityCount = 0
+local effectCount = fkmd_effectCount
+
 
 function ENT:Initialize()
     self.bornTime = CurTime()
     self.emitter = ParticleEmitter(self:GetPos())
     self.effectTimer = 0
     self:SetRenderClipPlaneEnabled(true)
+    // self:DrawShadow(false)
 
     local parent = self:GetParent()
-    if IsValid(parent) then
-        -- 线程安全? Yes
-        if parent:IsRagdoll() then
-            self.RagdollCount = self.RagdollCount + 1
-        else
-            self.EntityCount = self.EntityCount + 1
-        end
+    -- 线程安全? Yes
+    if IsValid(parent) and parent:IsRagdoll() then
+        effectCount.Ragdoll = effectCount.Ragdoll + 1
+        self.isRagdoll = true
+    else
+        effectCount.Entity = effectCount.Entity + 1
     end
 end
 
@@ -193,12 +193,12 @@ function ENT:OnRemove()
         if self.removeParent then 
             SafeRemoveEntity(self:GetParent()) 
         end
+    end
 
-        if parent:IsRagdoll() then
-            self.RagdollCount = self.RagdollCount - 1
-        else
-            self.EntityCount = self.EntityCount - 1
-        end
+    if self.isRagdoll then
+        effectCount.Ragdoll = math.max(effectCount.Ragdoll - 1, 0)
+    else
+        effectCount.Entity = math.max(effectCount.Entity - 1, 0)
     end
 end
 

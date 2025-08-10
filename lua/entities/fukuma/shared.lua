@@ -87,6 +87,7 @@ end
 if SERVER and game.SinglePlayer() then 
     local KillAnimPlayInServer = fkmd_PlayInServer
     hook.Add('CreateEntityRagdoll', 'fkm_kill_anim', function(entity, ragdoll)
+        -- 僵尸很特殊, 死亡后会双端生成
         for i = #AllInstance, 1, -1 do
             local fkm = AllInstance[i]
             if IsValid(fkm) then

@@ -13,6 +13,13 @@ if SERVER then
         local validlist = {}
         for _, ent in pairs(entlist) do
             if IsValid(ent) then
+                -- 排除刷模型及地图基础实体
+                local class = ent:GetClass()
+                if string.StartWith(class, 'func_') or string.StartWith(class, 'trigger_') or string.StartWith(class, 'brush_') then
+                    continue
+                end
+                
+
                 local phy = ent:GetPhysicsObject()
                 local matType = IsValid(phy) and phy:GetMaterial() or 'metal'
                 
@@ -28,6 +35,9 @@ if SERVER then
                 -- 修改透明度
                 ent:SetRenderMode(RENDERMODE_TRANSCOLOR)
                 ent:SetColor(transparent)
+
+                -- 关闭阴影
+                // ent:DrawShadow(false)
 
                 validlist[#validlist + 1] = {ent, matType}
             end
@@ -54,11 +64,13 @@ if SERVER then
 end
 
 if CLIENT then  
-    include('fkmd_effect_data.lua')
+    fkmd_effectCount = fkmd_effectCount or {}
+    fkmd_effectDataTable = fkmd_effectDataTable or {}
+    fkmd_materialTypeTable = fkmd_materialTypeTable or {}
 
     local fkmd_nogravity = CreateConVar('fkmd_nogravity', '1', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-    local fkmd_ragdoll_limit = CreateClientConVar('fkmd_ragdoll_limit', '20', true, false)
-    local fkmd_ent_limit = CreateClientConVar('fkmd_ent_limit', '20', true, false)
+    local fkmd_ragdoll_limit = CreateClientConVar('fkmd_ragdoll_limit', '50', true, false)
+    local fkmd_ent_limit = CreateClientConVar('fkmd_ent_limit', '50', true, false)
 
     local effectCount = fkmd_effectCount
     local effectDataTable = fkmd_effectDataTable
@@ -151,9 +163,10 @@ if CLIENT then
     end)
 
     concommand.Add('fkmd_clear', function()
+        fkmd_effectCount.Ragdoll = 0
+        fkmd_effectCount.Entity = 0
         for _, ent in ipairs(ents.FindByClass('fkmd')) do
             ent:Remove()
         end
     end)
-
 end
