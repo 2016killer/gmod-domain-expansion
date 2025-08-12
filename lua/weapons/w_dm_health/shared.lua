@@ -23,3 +23,12 @@ end
 function SWEP:PrimaryAttack() end
 
 function SWEP:SecondaryAttack() end
+
+if not game.SinglePlayer() then
+    hook.Add('PreDomainExpand', 'dm_health_condition', function(ply, dotype)
+        if dotype == 'dm_health' and not IsValid(ply:GetWeapon('w_dm_health')) then
+            if CLIENT then ply:EmitSound('Weapon_AR2.Empty') end
+            return true
+        end
+    end)
+end

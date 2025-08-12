@@ -33,14 +33,6 @@ if CLIENT then
     end)
 end
 
-hook.Add('PreDomainExpand', 'dm_simple_condition', function(ply, dotype)
-    if dotype == 'dm_simple' and not IsValid(ply:GetWeapon('w_dm_simple')) then
-        if CLIENT then ply:EmitSound('Weapon_AR2.Empty') end
-        return true
-    end
-end)
-
-
 function ENT:RunCall(dt)
     local owner = self:GetOwner()
     if IsValid(owner) then self:Move(owner:GetPos()) end

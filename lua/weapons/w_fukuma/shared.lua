@@ -23,3 +23,12 @@ end
 function SWEP:PrimaryAttack() end
 
 function SWEP:SecondaryAttack() end
+
+if not game.SinglePlayer() then
+    hook.Add('PreDomainExpand', 'fkm_condition', function(ply, dotype)
+        if dotype == 'fukuma' and not IsValid(ply:GetWeapon('w_fukuma')) then
+            if CLIENT then ply:EmitSound('Weapon_AR2.Empty') end
+            return true
+        end
+    end)
+end

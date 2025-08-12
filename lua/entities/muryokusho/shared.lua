@@ -60,9 +60,3 @@ function ENT:Initialize()
     end
 end
 
-hook.Add('PreDomainExpand', 'mryks_condition', function(ply, dotype)
-    if dotype == 'muryokusho' and not IsValid(ply:GetWeapon('w_muryokusho')) then
-        if CLIENT then ply:EmitSound('Weapon_AR2.Empty') end
-        return true
-    end
-end)

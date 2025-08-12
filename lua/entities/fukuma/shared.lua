@@ -60,14 +60,6 @@ function ENT:Initialize()
     table.insert(AllInstance, self)
 end
 
-
-hook.Add('PreDomainExpand', 'fkm_condition', function(ply, dotype)
-    if dotype == 'fukuma' and not IsValid(ply:GetWeapon('w_fukuma')) then
-        if CLIENT then ply:EmitSound('Weapon_AR2.Empty') end
-        return true
-    end
-end)
-
 if CLIENT then
     hook.Add('CreateClientsideRagdoll', 'fkm_kill_anim', function(entity, ragdoll)
         for i = #AllInstance, 1, -1 do
