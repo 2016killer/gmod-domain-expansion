@@ -186,7 +186,7 @@ function ENT:SoundEffect()
 end
 
 function ENT:OnRemove()
-    if self.emitter then self.emitter:Finish() end
+    if IsValid(self.emitter) then self.emitter:Finish() end
 
     local parent = self:GetParent()
     if IsValid(parent) then

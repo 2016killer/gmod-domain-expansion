@@ -102,17 +102,19 @@ if CLIENT then
                 local emitter = ParticleEmitter(zero)
                 local mins, maxs = self:GetModelBounds()
                 
-                emitter:dm_Blast(
-                    effectData.matp, 
-                    2000, 
-                    self:GetPos(), 
-                    15, 
-                    50, 
-                    50, 
-                    0.5
-                )
-
-                emitter:Finish()
+                if IsValid(emitter) then 
+                    emitter:dm_Blast(
+                        effectData.matp, 
+                        2000, 
+                        self:GetPos(), 
+                        15, 
+                        50, 
+                        50, 
+                        0.5
+                    )
+                    
+                    emitter:Finish() 
+                end
                 self:EmitSound(effectData.sound)
                 if remove then SafeRemoveEntity(self) end
             else
