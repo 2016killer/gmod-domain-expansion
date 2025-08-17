@@ -12,7 +12,7 @@ CreateClientConVar('dm_start_anim', 'dhblink', true, false)
 CreateClientConVar('dm_execute_anim', 'dhblink', true, false)
 CreateClientConVar('dm_break_anim', 'dhwindblast', true, false)
 
-local version = '1.0.4'
+local version = '1.0.5'
 
 if CLIENT then
 	local phrase = language.GetPhrase

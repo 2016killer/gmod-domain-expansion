@@ -10,6 +10,7 @@ if CLIENT then
 	local dm_minr = CreateConVar('dm_minr', '200', { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
     local measureState = false
 	local measureResult = dm_minr:GetFloat()
+	local measureSlow = false
 
 	local measureEnts // 特效模型
 	local function getMeasureEnts()
@@ -27,8 +28,14 @@ if CLIENT then
 	hook.Add('Think', 'dm_measure', function()
 		-- 测量逻辑
 		if measureState then 
-			local dt = FrameTime()
-			measureResult = measureResult + dt * dm_sensitivity:GetFloat() 
+			if measureSlow then
+				local dt = FrameTime()
+				measureResult = measureResult + dt * dm_sensitivity:GetFloat() 
+			else
+				local trace = LocalPlayer():GetEyeTrace()
+				local start = LocalPlayer():GetPos()
+				measureResult = math.max(start:Distance(trace.HitPos), dm_minr:GetFloat())
+			end
 		end
 	end)
 
@@ -106,6 +113,7 @@ if CLIENT then
 	local threatNextTime = 0
 	concommand.Add('+dm_start', function(ply, cmd, args)
 		local domain = ply:GetNWEntity('domain')
+		measureSlow = args[2] == 'slow' and true or false
 		if IsValid(domain) then
 			net.Start('dm_execute')
 				net.WriteBool(true)

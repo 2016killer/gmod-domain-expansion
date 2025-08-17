@@ -69,7 +69,7 @@ function ENT:LaserStormEffect(dt)
     end
 end
 
-local fkm_flash = CreateClientConVar('fkm_flash', '1', true, false)
+local fkm_flash = CreateClientConVar('fkm_flash', '0', true, false)
 function ENT:flashEffect(dt)
    -- 闪光特效
     local period = 1
