@@ -23,7 +23,7 @@ if CLIENT then
 		return measureEnts
 	end
 
-	local dm_sensitivity = CreateClientConVar('dm_sensitivity', '500', true, false)
+	local dm_sensitivity = CreateClientConVar('dm_sensitivity', '1000', true, false)
 	hook.Add('Think', 'dm_measure', function()
 		-- 测量逻辑
 		if measureState then 
