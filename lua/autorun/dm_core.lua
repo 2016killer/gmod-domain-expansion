@@ -383,7 +383,7 @@ if CLIENT then
 		return tris
 	end
 
-	function dm_SimpleMesh(tris)
+	function dm_SimpleMesh(tris, normal)
 		-- 生成简易网格 (固定uv)
 		local obj = Mesh()
 		local verts = {}
@@ -392,7 +392,8 @@ if CLIENT then
 				verts[#verts + 1] = {
 					pos = tri[i + 1],	
 					u = math.min(1, bit.band(i, 0x01)),
-					v = math.min(1, bit.band(i, 0x02))
+					v = math.min(1, bit.band(i, 0x02)),
+					normal = normal
 				}
 			end		
 		end

@@ -13,8 +13,10 @@ end
 
 if CLIENT then  
 
-    concommand.Add('fkmd_debug_play', function()
+    concommand.Add('fkmd_debug_play', function(ply, cmd, args)
+        local matType = args[1] or 'Metal'
+        local duration = args[2] or 1
         local ent = LocalPlayer():GetEyeTrace().Entity
-        ent:fkmd_Play('Metal')
+        ent:fkmd_Play(matType, true, duration)
     end)
 end

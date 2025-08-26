@@ -128,7 +128,8 @@ function ENT:InitClip(dir, start, matType, speed, mins, maxs)
             GetAABBVertexes(mins, maxs),
             self.scanData.u,
             self.scanData.v
-        )
+        ),
+        self.scanData.normal
     )
 end
 
