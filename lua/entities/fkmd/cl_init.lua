@@ -129,7 +129,7 @@ function ENT:InitClip(dir, start, matType, speed, mins, maxs)
             self.scanData.u,
             self.scanData.v
         ),
-        self.scanData.normal
+        -self.scanData.dir
     )
 end
 

@@ -5,9 +5,10 @@ if SERVER then
         fkmd_PlayInServer({ent}, 1)
     end)
 
-    concommand.Add('fkmd_debug_play_sv', function(ply)
+    concommand.Add('fkmd_debug_play_sv', function(ply, cmd, args)
+        local duration = args[1] or 1
         local ent = ply:GetEyeTrace().Entity
-        fkmd_PlayInServer(ent, 1)
+        fkmd_PlayInServer({ent}, duration)
     end)
 end
 
